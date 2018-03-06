@@ -7,6 +7,9 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CommonMark.NET" Version="0.15.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.0.0" />
