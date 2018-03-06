@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -9,6 +10,9 @@ using CommonMark;
 using Optional;
 using Optional.Unsafe;
 using Serilog;
+using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace ABCBot.Interop
 {
@@ -37,7 +41,55 @@ namespace ABCBot.Interop
 
             var ymlBlock = maybeYmlBlock.ValueOrFailure();
 
+            // YamlDotNet apparently can't load partial yml files
+            // Dumb mapping loader ahead
+            using (var ymlBlockReader = new StringReader(ymlBlock)) {
+                var line = ymlBlockReader.ReadLine();
+
+                while (line != null) {
+                    line = line.TrimStart('-').TrimStart();
+
+                    var separatorIndex = line.IndexOf(':');
+                    var key = line.Substring(0, separatorIndex).Trim();
+                    var value = line.Substring(separatorIndex + 1, (line.Length - separatorIndex - 1)).Trim();
+
+                    MapYmlKeyToDetails(merchantDetails, key, value);
+
+                    line = ymlBlockReader.ReadLine();
+                }
+            }
+
             return Option.Some(merchantDetails);
+        }
+
+        private void MapYmlKeyToDetails(MerchantDetails merchantDetails, string key, string value) {
+            // TODO: Add all other missing keys
+            switch (key) {
+                case "url":
+                    merchantDetails.Url = value;
+                    break;
+                case "img":
+                    merchantDetails.ImageUrl = value;
+                    break;
+                case "facebook":
+                    merchantDetails.FacebookHandle = value;
+                    break;
+                case "email_address":
+                    merchantDetails.EmailAddress = value;
+                    break;
+                case "bch":
+                    merchantDetails.AcceptsBCH = value.ToBoolean();
+                    break;
+                case "btc":
+                    merchantDetails.AcceptsBTC = value.ToBoolean();
+                    break;
+                case "othercrypto":
+                    merchantDetails.AcceptsOtherCrypto = value.ToBoolean();
+                    break;
+                case "doc":
+                    merchantDetails.Document = value;
+                    break;
+            }
         }
 
         public Option<string> ExtractYmlCodeBlockFromIssueBody(string body) {

@@ -95,6 +95,14 @@ If everything looks okay, Add it to the site:
 
             Assert.Equal(sampleMerchantName, loadedMerchantDetails.Name);
             Assert.Equal(sampleCategory, loadedMerchantDetails.Category);
+            Assert.Equal("https://9figures.co.uk/", loadedMerchantDetails.Url);
+            Assert.Equal("", loadedMerchantDetails.ImageUrl);
+            Assert.Equal("9figuresuk", loadedMerchantDetails.FacebookHandle);
+            Assert.Equal("9figurescompany@gmail.com", loadedMerchantDetails.EmailAddress);
+            Assert.True(loadedMerchantDetails.AcceptsBCH);
+            Assert.False(loadedMerchantDetails.AcceptsBTC);
+            Assert.True(loadedMerchantDetails.AcceptsOtherCrypto);
+            Assert.Equal("https://9figures.co.uk/blogs/news/accepting-cryptocurrency-1", loadedMerchantDetails.Document);
         }
     }
 }

@@ -10,5 +10,18 @@ namespace ABCBot
         public static string NormalizeLineEndings(this string input) {
             return Regex.Replace(input, "\r\n|\r", "\n");
         }
+
+        public static bool ToBoolean(this string input) {
+            switch (input.ToLower()) {
+                case "yes": {
+                        return true;
+                    }
+                case "no": {
+                        return false;
+                    }
+            }
+
+            return false;
+        }
     }
 }

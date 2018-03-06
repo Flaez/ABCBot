@@ -9,6 +9,7 @@ namespace ABCBot.Models
         public string Category { get; set; }
 
         public string Name { get; set; }
+        public string Url { get; set; }
         public string ImageUrl { get; set; }
         public string EmailAddress { get; set; }
         public string City { get; set; }
