@@ -9,5 +9,6 @@ namespace ABCBot.Services
     public interface IGitHubService
     {
         Task<Issue> GetIssue(int id);
+        Task<IssueComment> CreateComment(int issueId, string commentBody);
     }
 }

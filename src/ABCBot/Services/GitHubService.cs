@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace ABCBot.Services
 {
-    public class GitHubService
+    public class GitHubService : IGitHubService
     {
         GitHubClient client;
 
         public string RepositoryOwner { get; }
         public string RepositoryName { get; }
-        
+
         public GitHubService(IConfigurationSection githubConfigurationSection) {
             client = new GitHubClient(new ProductHeaderValue("acceptbitcoincash-bot"));
 
@@ -27,6 +27,10 @@ namespace ABCBot.Services
 
         public Task<Issue> GetIssue(int id) {
             return client.Issue.Get(RepositoryOwner, RepositoryName, id);
+        }
+
+        public Task<IssueComment> CreateComment(int issueId, string commentBody) {
+            return client.Issue.Comment.Create(RepositoryOwner, RepositoryName, issueId, commentBody);
         }
     }
 }
