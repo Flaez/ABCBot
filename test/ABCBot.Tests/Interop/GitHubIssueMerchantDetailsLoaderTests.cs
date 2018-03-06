@@ -44,7 +44,7 @@ If everything looks okay, Add it to the site:
 - [ ] Assign to yourself when you begin work.
 - [ ] Download and resize the image and put it into the proper img folder.
 - [ ] Add listing alphabetically to proper .yml file.
-- [ ] Commit changes mentioning this issue number with 'closes #[ISSUE NUMBER HERE]'.";
+- [ ] Commit changes mentioning this issue number with 'closes #[ISSUE NUMBER HERE]'.".NormalizeLineEndings();
 
         [Fact]
         public void ItShouldExtractMerchantDetailsFromIssueTitleSuccessfully() {
@@ -58,6 +58,25 @@ If everything looks okay, Add it to the site:
             Assert.True(result);
             Assert.Equal(sampleMerchantName, merchantDetails.Name);
             Assert.Equal(sampleCategory, merchantDetails.Category);
+        }
+
+        [Fact]
+        public void ItShouldExtractYmlBlockFromIssueBody() {
+            var ymlString = @"- name: 9figures
+      url: https://9figures.co.uk/
+      img: 
+      facebook: 9figuresuk
+      email_address: 9figurescompany@gmail.com
+      bch: Yes
+      btc: No
+      othercrypto: Yes
+      doc: https://9figures.co.uk/blogs/news/accepting-cryptocurrency-1".NormalizeLineEndings();
+
+            var detailsLoader = new GithubIssueMerchantDetailsLoader(Mock.Of<IGitHubService>());
+
+            var result = detailsLoader.ExtractYmlCodeBlockFromIssueBody(sampleBody).ValueOrFailure();
+
+            Assert.Equal(ymlString, result);
         }
 
         [Fact]

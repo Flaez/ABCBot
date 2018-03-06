@@ -5,7 +5,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ABCBot.Models;
 using ABCBot.Services;
+using CommonMark;
 using Optional;
+using Optional.Unsafe;
+using Serilog;
 
 namespace ABCBot.Interop
 {
@@ -27,7 +30,27 @@ namespace ABCBot.Interop
                 return Option.None<MerchantDetails>();
             }
 
+            var maybeYmlBlock = ExtractYmlCodeBlockFromIssueBody(issue.Body);
+            if (!maybeYmlBlock.HasValue) {
+                return Option.None<MerchantDetails>();
+            }
+
+            var ymlBlock = maybeYmlBlock.ValueOrFailure();
+
             return Option.Some(merchantDetails);
+        }
+
+        public Option<string> ExtractYmlCodeBlockFromIssueBody(string body) {
+            var document = CommonMarkConverter.Parse(body);
+            foreach (var node in document.AsEnumerable()) {
+                if (node.IsOpening && node.Block?.Tag == CommonMark.Syntax.BlockTag.FencedCode) {
+                    if (node.Block.FencedCodeData.Info == "yml") {
+                        return Option.Some(node.Block.StringContent.ToString().Trim('\n'));
+                    }
+                }
+            }
+
+            return Option.None<string>();
         }
 
         public bool TryExtractDetailsFromTitle(string title, MerchantDetails merchantDetails) {
@@ -49,6 +72,8 @@ namespace ABCBot.Interop
 
             merchantDetails.Name = matches[0].Value.Trim('\'');
             merchantDetails.Category = matches[1].Value.Trim('\'');
+
+            Log.Debug("Extracted \"{name}\" and \"{category}\" from \"{title}\"", merchantDetails.Name, merchantDetails.Category, title);
 
             return true;
         }
