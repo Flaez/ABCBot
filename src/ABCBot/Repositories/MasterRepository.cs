@@ -10,6 +10,7 @@ namespace ABCBot.Repositories
     public class MasterRepository
     {
         public string RepositoryDataDirectory { get; }
+        public string TaskRepositoriesDataDirectory { get; }
         public string MasterRepositoryDirectory { get; }
 
         IGitHubService gitHubService;
@@ -17,6 +18,7 @@ namespace ABCBot.Repositories
 
         public MasterRepository(IGitHubService gitHubService, IGitService gitService, string dataPath) {
             this.RepositoryDataDirectory = Path.Combine(dataPath, "repositories");
+            this.TaskRepositoriesDataDirectory = Path.Combine(RepositoryDataDirectory, "tasks");
             this.MasterRepositoryDirectory = Path.Combine(this.RepositoryDataDirectory, "master");
 
             this.gitHubService = gitHubService;
@@ -34,8 +36,17 @@ namespace ABCBot.Repositories
             }
         }
 
-        public IRepositoryContext CreateContext() {
-            return new RepositoryContext(this.MasterRepositoryDirectory);
+        public async Task<IRepositoryContext> CreateContext(int identifier) {
+            var taskDirectory = Path.Combine(TaskRepositoriesDataDirectory, $"task-{identifier}");
+
+            // Ensure we get a clean start each time
+            if (Directory.Exists(taskDirectory)) {
+                Directory.Delete(taskDirectory, true);
+            }
+
+            await gitService.CloneRepository(MasterRepositoryDirectory, taskDirectory);
+
+            return new RepositoryContext(taskDirectory);
         }
     }
 }
