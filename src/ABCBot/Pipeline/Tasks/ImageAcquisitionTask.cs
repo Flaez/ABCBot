@@ -12,9 +12,9 @@ namespace ABCBot.Pipeline.Tasks
         public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
             var imageLocalPath = Path.GetTempFileName();
 
-            var webClient = new WebClient();
-
-            await webClient.DownloadFileTaskAsync(context.MerchantDetails.ImageUrl, imageLocalPath);
+            using (var webClient = new WebClient()) {
+                await webClient.DownloadFileTaskAsync(context.MerchantDetails.ImageUrl, imageLocalPath);
+            }
 
             context.Data.Add("ImageLocalPath", imageLocalPath);
 
