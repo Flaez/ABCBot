@@ -1,7 +1,11 @@
-﻿using ABCBot.Repositories;
+﻿using ABCBot.Interop;
+using ABCBot.Pipeline;
+using ABCBot.Repositories;
 using ABCBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Optional;
+using Optional.Unsafe;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -49,6 +53,10 @@ namespace ABCBot
 
             serviceCollection.AddSingleton<IGitHubService>(provider => new GitHubService(Configuration.GetSection("Github")));
             serviceCollection.AddSingleton<IGitService, GitService>();
+            serviceCollection.AddScoped<IMerchantDetailsLoader, GithubIssueMerchantDetailsLoader>();
+            serviceCollection.AddScoped<ITwitterService>(provider => new TwitterService(Configuration.GetSection("Twitter")));
+
+            serviceCollection.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
 
             this.Services = serviceCollection.BuildServiceProvider();
 
