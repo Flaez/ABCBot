@@ -46,7 +46,7 @@ namespace ABCBot.Repositories
 
             await gitService.CloneRepository(MasterRepositoryDirectory, taskDirectory);
 
-            return new RepositoryContext(taskDirectory);
+            return new RepositoryContext(taskDirectory, gitService);
         }
     }
 }

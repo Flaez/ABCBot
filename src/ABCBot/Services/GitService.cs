@@ -51,5 +51,32 @@ namespace ABCBot.Services
 
             return Task.CompletedTask;
         }
+
+        public Task CreateBranch(string localRepositoryDirectory, string branchName) {
+            using (var repository = new Repository(localRepositoryDirectory)) {
+                repository.CreateBranch(branchName);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task StageChanges(string localRepositoryDirectory) {
+            using (var repository = new Repository(localRepositoryDirectory)) {
+                Commands.Stage(repository, "*");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task Commit(string localRepositoryDirectory, string message) {
+            using (var repository = new Repository(localRepositoryDirectory)) {
+                // TODO: Move bot commit signature information to configuration
+                var signature = new Signature("AcceptBitcoin.Cash Bot", "acceptbitcoincash@example.com", DateTimeOffset.UtcNow);
+
+                repository.Commit(message, signature, signature);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }
