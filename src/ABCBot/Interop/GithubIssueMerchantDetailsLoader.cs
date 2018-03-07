@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ABCBot.Models;
 using ABCBot.Services;
 using CommonMark;
+using Octokit;
 using Optional;
 using Optional.Unsafe;
 using Serilog;
@@ -63,19 +65,39 @@ namespace ABCBot.Interop
         }
 
         private void MapYmlKeyToDetails(MerchantDetails merchantDetails, string key, string value) {
-            // TODO: Add all other missing keys
             switch (key) {
+                case "name":
+                    merchantDetails.Name = value;
+                    break;
                 case "url":
                     merchantDetails.Url = value;
+                    break;
+                case "status":
+                    merchantDetails.StatusUrl = value;
                     break;
                 case "img":
                     merchantDetails.ImageUrl = value;
                     break;
-                case "facebook":
-                    merchantDetails.FacebookHandle = value;
-                    break;
                 case "email_address":
                     merchantDetails.EmailAddress = value;
+                    break;
+                case "city":
+                    merchantDetails.City = value;
+                    break;
+                case "state":
+                    merchantDetails.State = value;
+                    break;
+                case "region":
+                    merchantDetails.Region = value;
+                    break;
+                case "country":
+                    merchantDetails.Country = value;
+                    break;
+                case "twitter":
+                    merchantDetails.TwitterHandle = value;
+                    break;
+                case "facebook":
+                    merchantDetails.FacebookHandle = value;
                     break;
                 case "bch":
                     merchantDetails.AcceptsBCH = value.ToBoolean();
@@ -89,6 +111,7 @@ namespace ABCBot.Interop
                 case "doc":
                     merchantDetails.Document = value;
                     break;
+
             }
         }
 
@@ -128,6 +151,31 @@ namespace ABCBot.Interop
             Log.Debug("Extracted \"{name}\" and \"{category}\" from \"{title}\"", merchantDetails.Name, merchantDetails.Category, title);
 
             return true;
+        }
+
+        public void ApplyIssueCommentCommandsToMerchantDetails(IReadOnlyList<IssueComment> comments, MerchantDetails merchantDetails) {
+            // Only apply comment commands from collaborators
+            foreach (var comment in comments.Where(x => x.User.Permissions.Admin || x.User.Permissions.Push)) {
+
+                var document = CommonMarkConverter.Parse(comment.Body);
+                foreach (var node in document.AsEnumerable()) {
+                    if (node.IsOpening && node.Block?.Tag == CommonMark.Syntax.BlockTag.Paragraph) {
+                        var maybeCommand = node.Block.InlineContent.LiteralContent;
+
+                        if (maybeCommand.StartsWith("/abc ")) {
+                            var command = maybeCommand.Substring("/abc ".Length);
+
+                            var firstSpacePosition = command.IndexOf(' ');
+
+                            var key = command.Substring(0, firstSpacePosition);
+                            var value = command.Substring(firstSpacePosition + 1, (command.Length - firstSpacePosition - 1));
+
+                            MapYmlKeyToDetails(merchantDetails, key, value);
+                        }
+                    }
+                }
+
+            }
         }
     }
 }

@@ -10,5 +10,6 @@ namespace ABCBot.Services
     {
         Task<Issue> GetIssue(int id);
         Task<IssueComment> CreateComment(int issueId, string commentBody);
+        Task<IReadOnlyList<IssueComment>> GetIssueComments(int issueId);
     }
 }

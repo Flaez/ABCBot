@@ -104,5 +104,56 @@ If everything looks okay, Add it to the site:
             Assert.True(loadedMerchantDetails.AcceptsOtherCrypto);
             Assert.Equal("https://9figures.co.uk/blogs/news/accepting-cryptocurrency-1", loadedMerchantDetails.Document);
         }
+
+        [Fact]
+        public void ItShouldApplyCommentCommandsToMerchantDetails() {
+            var url = "https://google.com";
+            var name = "Google";
+
+            var adminUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
+                                     0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                     new RepositoryPermissions(true, true, true), false, "", null);
+
+            var collaboratorUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
+                                    0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                    new RepositoryPermissions(false, true, false), false, "", null);
+
+            var externalUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
+                                    0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                    new RepositoryPermissions(false, false, false), false, "", null);
+
+            var externalUserCommentBody = @"Wow, this looks great!
+
+Will this be included in the next release? Can't wait!";
+
+            var collaboratorUserCommentBody = $"/abc url {url}";
+            var secondCollaboratorUserCommentBody = $"/abc name {name}";
+            var adminUserCommentBody = @"LGTM";
+
+            var externalUserComment = new IssueComment(0, "", "", externalUserCommentBody, DateTimeOffset.MinValue, null, externalUser);
+            var collaboratorUserComment = new IssueComment(0, "", "", collaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
+            var secondCollaboratorUserComment = new IssueComment(0, "", "", secondCollaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
+            var adminUserComment = new IssueComment(0, "", "", adminUserCommentBody, DateTimeOffset.MinValue, null, adminUser);
+
+            var issueComments = new List<IssueComment>()
+            {
+                externalUserComment,
+                collaboratorUserComment,
+                secondCollaboratorUserComment,
+                adminUserComment
+            };
+
+            var merchantDetails = new MerchantDetails();
+
+            var githubService = new Mock<IGitHubService>();
+            githubService.Setup(x => x.GetIssueComments(It.IsAny<int>())).ReturnsAsync(issueComments);
+
+            var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
+
+            detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, merchantDetails);
+
+            Assert.Equal(url, merchantDetails.Url);
+            Assert.Equal(name, merchantDetails.Name);
+        }
     }
 }

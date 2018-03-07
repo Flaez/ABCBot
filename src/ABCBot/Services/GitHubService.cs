@@ -32,5 +32,9 @@ namespace ABCBot.Services
         public Task<IssueComment> CreateComment(int issueId, string commentBody) {
             return client.Issue.Comment.Create(RepositoryOwner, RepositoryName, issueId, commentBody);
         }
+
+        public Task<IReadOnlyList<IssueComment>> GetIssueComments(int issueId) {
+            return client.Issue.Comment.GetAllForIssue(RepositoryOwner, RepositoryName, issueId);
+        }
     }
 }
