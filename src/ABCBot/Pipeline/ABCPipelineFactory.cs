@@ -18,7 +18,9 @@ namespace ABCBot.Pipeline
                                     new ImageAcquisitionTask(),
                                     new CompressImageTask(),
                                     new ImagePlacementTask(),
-                                    new CleanupTask());
+                                    new CategoryYmlAmendmentTask(),
+                                    new CleanupTask()
+                                    );
         }
     }
 }
