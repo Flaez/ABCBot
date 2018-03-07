@@ -111,6 +111,9 @@ namespace ABCBot.Interop
                 case "doc":
                     merchantDetails.Document = value;
                     break;
+                case "category":
+                    merchantDetails.Category = value;
+                    break;
 
             }
         }
