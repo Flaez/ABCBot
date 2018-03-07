@@ -27,7 +27,7 @@ namespace ABCBot.Interop
         }
 
         public async Task<Option<MerchantDetails>> ExtractDetails(int identifier) {
-            var issue = await githubService.GetIssue(identifier);
+            var issue = await githubService.GetIssue(RepositoryTarget.Upstream, identifier);
 
             var merchantDetails = new MerchantDetails();
 

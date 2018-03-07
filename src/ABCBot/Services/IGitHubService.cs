@@ -8,9 +8,11 @@ namespace ABCBot.Services
 {
     public interface IGitHubService
     {
-        Task<Issue> GetIssue(int id);
-        Task<IssueComment> CreateComment(int issueId, string commentBody);
-        Task<IReadOnlyList<IssueComment>> GetIssueComments(int issueId);
-        Task<Repository> GetRepository();
+        Credentials Credentials { get; }
+
+        Task<Issue> GetIssue(RepositoryTarget repositoryTarget, int id);
+        Task<IssueComment> CreateComment(RepositoryTarget repositoryTarget, int issueId, string commentBody);
+        Task<IReadOnlyList<IssueComment>> GetIssueComments(RepositoryTarget repositoryTarget, int issueId);
+        Task<Repository> GetRepository(RepositoryTarget repositoryTarget);
     }
 }

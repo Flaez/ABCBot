@@ -85,7 +85,7 @@ If everything looks okay, Add it to the site:
             var issue = new Issue("", "", "", "", 0, ItemState.Open, title, sampleBody, null, null, null, null, null, null, 0, null, null, DateTimeOffset.MinValue, null, 0, false, null);
 
             var githubService = new Mock<IGitHubService>();
-            githubService.Setup(x => x.GetIssue(It.IsAny<int>())).ReturnsAsync(issue);
+            githubService.Setup(x => x.GetIssue(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issue);
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 
@@ -146,7 +146,7 @@ Will this be included in the next release? Can't wait!";
             var merchantDetails = new MerchantDetails();
 
             var githubService = new Mock<IGitHubService>();
-            githubService.Setup(x => x.GetIssueComments(It.IsAny<int>())).ReturnsAsync(issueComments);
+            githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issueComments);
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 

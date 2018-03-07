@@ -78,5 +78,28 @@ namespace ABCBot.Services
 
             return Task.CompletedTask;
         }
+
+        public Task CreateRemote(string localRepositoryDirectory, string remoteName, string remoteUrl) {
+            using (var repository = new Repository(localRepositoryDirectory)) {
+                repository.Network.Remotes.Add(remoteName, remoteUrl);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task Push(string localRepositoryDirectory, string remoteName, string branch, Credentials remoteCredentials) {
+            using (var repository = new Repository(localRepositoryDirectory)) {
+                var remote = repository.Network.Remotes[remoteName];
+
+                var pushOptions = new PushOptions()
+                {
+                    CredentialsProvider = (url, user, credentials) => remoteCredentials
+                };
+
+                repository.Network.Push(remote, $"refs/heads/{branch}", pushOptions);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

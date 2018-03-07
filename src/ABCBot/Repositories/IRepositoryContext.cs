@@ -15,5 +15,6 @@ namespace ABCBot.Repositories
         Task CreateBranch(string branchName);
         Task StageChanges();
         Task Commit(string message);
+        Task Push(string branchName);
     }
 }

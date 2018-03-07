@@ -15,7 +15,7 @@ namespace ABCBot.Pipeline.GitHub
         }
 
         public Task Announce(IPipelineContext context, string message) {
-            return gitHubService.CreateComment(context.TaskIdentifier, message);
+            return gitHubService.CreateComment(RepositoryTarget.Upstream, context.TaskIdentifier, message);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ABCBot.Services;
+using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,11 +13,16 @@ namespace ABCBot.Repositories
         private readonly string DataDirectory = "_data";
 
         public string RepositoryDirectory { get; }
+        public string RemoteRepositoryUrl { get; }
+
+        Credentials credentials;
 
         IGitService gitService;
 
-        public RepositoryContext(string repositoryDirectory, IGitService gitService) {
+        public RepositoryContext(string repositoryDirectory, string remoteRepositoryUrl, Credentials credentials, IGitService gitService) {
             this.RepositoryDirectory = repositoryDirectory;
+            this.RemoteRepositoryUrl = remoteRepositoryUrl;
+            this.credentials = credentials;
             this.gitService = gitService;
         }
 
@@ -44,6 +50,10 @@ namespace ABCBot.Repositories
 
         public Task Commit(string message) {
             return gitService.Commit(RepositoryDirectory, message);
+        }
+
+        public Task Push(string branchName) {
+            return gitService.Push(RepositoryDirectory, "bot", branchName, credentials);
         }
     }
 }

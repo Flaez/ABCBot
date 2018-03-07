@@ -14,6 +14,13 @@ namespace ABCBot.Services
         public string RepositoryOwner { get; }
         public string RepositoryName { get; }
 
+        public string BotRepositoryOwner { get; }
+        public string BotRepositoryName { get; }
+
+        public Credentials Credentials {
+            get { return client.Credentials; }
+        }
+
         public GitHubService(IConfigurationSection githubConfigurationSection) {
             client = new GitHubClient(new ProductHeaderValue("acceptbitcoincash-bot"));
 
@@ -23,22 +30,51 @@ namespace ABCBot.Services
 
             RepositoryOwner = githubConfigurationSection.GetSection("Repository")["Owner"];
             RepositoryName = githubConfigurationSection.GetSection("Repository")["Name"];
+
+            BotRepositoryOwner = githubConfigurationSection.GetSection("BotRepository")["Owner"];
+            BotRepositoryName = githubConfigurationSection.GetSection("BotRepository")["Name"];
         }
 
-        public Task<Issue> GetIssue(int id) {
-            return client.Issue.Get(RepositoryOwner, RepositoryName, id);
+        public Task<Issue> GetIssue(RepositoryTarget repositoryTarget, int id) {
+            return client.Issue.Get(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget), id);
         }
 
-        public Task<IssueComment> CreateComment(int issueId, string commentBody) {
-            return client.Issue.Comment.Create(RepositoryOwner, RepositoryName, issueId, commentBody);
+        public Task<IssueComment> CreateComment(RepositoryTarget repositoryTarget, int issueId, string commentBody) {
+            return client.Issue.Comment.Create(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget), issueId, commentBody);
         }
 
-        public Task<IReadOnlyList<IssueComment>> GetIssueComments(int issueId) {
-            return client.Issue.Comment.GetAllForIssue(RepositoryOwner, RepositoryName, issueId);
+        public Task<IReadOnlyList<IssueComment>> GetIssueComments(RepositoryTarget repositoryTarget, int issueId) {
+            return client.Issue.Comment.GetAllForIssue(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget), issueId);
         }
 
-        public Task<Octokit.Repository> GetRepository() {
-            return client.Repository.Get(RepositoryOwner, RepositoryName);
+        public Task<Repository> GetRepository(RepositoryTarget repositoryTarget) {
+            return client.Repository.Get(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget));
+        }
+
+        private string GetRepositoryOwnerForTarget(RepositoryTarget target) {
+            switch (target) {
+                case RepositoryTarget.Upstream: {
+                        return RepositoryOwner;
+                    }
+                case RepositoryTarget.Bot: {
+                        return BotRepositoryOwner;
+                    }
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        private string GetRepositoryNameForTarget(RepositoryTarget target) {
+            switch (target) {
+                case RepositoryTarget.Upstream: {
+                        return RepositoryName;
+                    }
+                case RepositoryTarget.Bot: {
+                        return BotRepositoryName;
+                    }
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

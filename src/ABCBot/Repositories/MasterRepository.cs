@@ -26,7 +26,7 @@ namespace ABCBot.Repositories
         }
 
         public async Task Initialize() {
-            var masterRepository = await gitHubService.GetRepository();
+            var masterRepository = await gitHubService.GetRepository(RepositoryTarget.Bot);
 
             if (!Directory.Exists(MasterRepositoryDirectory)) {
                 await gitService.CloneRepository(masterRepository.CloneUrl, MasterRepositoryDirectory);
@@ -37,6 +37,8 @@ namespace ABCBot.Repositories
         }
 
         public async Task<IRepositoryContext> CreateContext(int identifier) {
+            var botRepository = await gitHubService.GetRepository(RepositoryTarget.Bot);
+
             var taskDirectory = Path.Combine(TaskRepositoriesDataDirectory, $"task-{identifier}");
 
             // Ensure we get a clean start each time
@@ -46,7 +48,24 @@ namespace ABCBot.Repositories
 
             await gitService.CloneRepository(MasterRepositoryDirectory, taskDirectory);
 
-            return new RepositoryContext(taskDirectory, gitService);
+            var gitCredentials = new LibGit2Sharp.UsernamePasswordCredentials();
+
+            switch (gitHubService.Credentials.AuthenticationType) {
+                case Octokit.AuthenticationType.Oauth: {
+                        gitCredentials.Username = gitHubService.Credentials.Password;
+                        gitCredentials.Password = "";
+                    }
+                    break;
+                case Octokit.AuthenticationType.Basic: {
+                        gitCredentials.Username = gitHubService.Credentials.Login;
+                        gitCredentials.Password = gitHubService.Credentials.Password;
+                    }
+                    break;
+            }
+
+            await gitService.CreateRemote(taskDirectory, "bot", botRepository.HtmlUrl);
+
+            return new RepositoryContext(taskDirectory, botRepository.Url, gitCredentials, gitService);
         }
     }
 }
