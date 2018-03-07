@@ -28,6 +28,7 @@ namespace ABCBot.Models
         public bool AcceptsOtherCrypto { get; set; }
 
         public string Document { get; set; }
+        public string Language { get; set; }
 
         public string PlacedImageName { get; set; }
     }
