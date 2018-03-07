@@ -20,7 +20,7 @@ namespace ABCBot.Pipeline.Tasks
 
             File.Copy(compressedImagePath, targetImagePath, true);
 
-            context.MerchantDetails.PlacedImageName = targetImageName;
+            context.MerchantDetails.PlacedImageName = $"{targetImageName}.png";
 
             return Task.FromResult(PipelineProcessingResult.Success());
         }
