@@ -8,17 +8,31 @@ namespace ABCBot.Pipeline.Tasks
     public class DataVerificationTask : IPipelineTask
     {
         public Task<PipelineProcessingResult> Process(IPipelineContext context) {
+            var missingFields = new List<string>();
+
             if (string.IsNullOrEmpty(context.MerchantDetails.Name)) {
-                return Task.FromResult(PipelineProcessingResult.Failure("Merchant name is missing."));
+                missingFields.Add("name");
             }
             if (string.IsNullOrEmpty(context.MerchantDetails.ImageUrl)) {
-                return Task.FromResult(PipelineProcessingResult.Failure("No image url has been specified."));
+                missingFields.Add("img");
             }
             if (string.IsNullOrEmpty(context.MerchantDetails.Url)) {
-                return Task.FromResult(PipelineProcessingResult.Failure("No merchant url been specified."));
+                missingFields.Add("url");
             }
 
-            return Task.FromResult(PipelineProcessingResult.Success());
+            if (missingFields.Count == 0) {
+                return Task.FromResult(PipelineProcessingResult.Success());
+            }else {
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine("The following fields are missing:");
+                foreach (var field in missingFields) {
+                    messageBuilder.Append("- ");
+                    messageBuilder.AppendLine(field);
+                }
+
+                return Task.FromResult(PipelineProcessingResult.Failure(messageBuilder.ToString()));
+            }
+
         }
     }
 }
