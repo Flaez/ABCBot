@@ -14,7 +14,9 @@ namespace ABCBot.Pipeline
             var twitterService = services.GetService<ITwitterService>();
 
             return new TaskPipeline(context, announcer,
-                                    new DataVerificationTask(twitterService));
+                                    new DataVerificationTask(twitterService),
+                                    new ImageAcquisitionTask(),
+                                    new CompressImageTask());
         }
     }
 }
