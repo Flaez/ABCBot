@@ -1,6 +1,7 @@
 ﻿using ABCBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,6 +40,11 @@ namespace ABCBot.Pipeline.Tasks
             }
             if (string.IsNullOrEmpty(context.MerchantDetails.Url)) {
                 missingFields.Add("url");
+            }
+
+            // Check categories
+            if (!context.RepositoryContext.EnumerateCategories().Contains(context.MerchantDetails.Category, StringComparer.OrdinalIgnoreCase)) {
+                missingFields.Add("category");
             }
 
             if (missingFields.Count == 0) {
