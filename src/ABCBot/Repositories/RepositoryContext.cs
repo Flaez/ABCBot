@@ -33,7 +33,21 @@ namespace ABCBot.Repositories
         }
 
         public void Dispose() {
-            //Directory.Delete(RepositoryDirectory, true);
+            // An exception is thrown while trying to delete files created by git
+            // Resetting attributes seems to work around this
+            ResetAttributes(new DirectoryInfo(RepositoryDirectory));
+            Directory.Delete(RepositoryDirectory, true);
+        }
+
+        // Source: https://stackoverflow.com/a/30673648
+        private void ResetAttributes(DirectoryInfo directory) {
+            foreach (var subDirectory in directory.GetDirectories()) {
+                ResetAttributes(subDirectory);
+                subDirectory.Attributes = FileAttributes.Normal;
+            }
+            foreach (var file in directory.GetFiles()) {
+                file.Attributes = FileAttributes.Normal;
+            }
         }
 
         public Task Checkout(string branchName) {

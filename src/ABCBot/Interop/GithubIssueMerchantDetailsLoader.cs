@@ -45,6 +45,7 @@ namespace ABCBot.Interop
 
             // YamlDotNet apparently can't load partial yml files
             // Dumb mapping loader ahead
+            // Edit: Turns out YamlDotNet can load partial files, just in a not-so-obvious format. Implement that "later"
             using (var ymlBlockReader = new StringReader(ymlBlock)) {
                 var line = ymlBlockReader.ReadLine();
 
