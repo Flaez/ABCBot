@@ -36,5 +36,9 @@ namespace ABCBot.Services
         public Task<IReadOnlyList<IssueComment>> GetIssueComments(int issueId) {
             return client.Issue.Comment.GetAllForIssue(RepositoryOwner, RepositoryName, issueId);
         }
+
+        public Task<Octokit.Repository> GetRepository() {
+            return client.Repository.Get(RepositoryOwner, RepositoryName);
+        }
     }
 }
