@@ -17,6 +17,7 @@ namespace ABCBot.Pipeline
 
             return new TaskPipeline(context, announcer,
                                     new DataVerificationTask(twitterService),
+                                    new DataMutationTask(networkService),
                                     new SetupBranchTask(),
                                     new ImageAcquisitionTask(diskService, networkService),
                                     new CompressImageTask(),
