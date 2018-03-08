@@ -7,5 +7,6 @@ namespace ABCBot.Services
     public interface IDiskService
     {
         string GetTempFilePath();
+        void DeleteDirectory(string directory);
     }
 }

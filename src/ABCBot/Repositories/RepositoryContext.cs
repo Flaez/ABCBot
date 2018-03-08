@@ -18,12 +18,14 @@ namespace ABCBot.Repositories
         Credentials credentials;
 
         IGitService gitService;
+        IDiskService diskService;
 
-        public RepositoryContext(string repositoryDirectory, string remoteRepositoryUrl, Credentials credentials, IGitService gitService) {
+        public RepositoryContext(string repositoryDirectory, string remoteRepositoryUrl, Credentials credentials, IGitService gitService, IDiskService diskService) {
             this.RepositoryDirectory = repositoryDirectory;
             this.RemoteRepositoryUrl = remoteRepositoryUrl;
             this.credentials = credentials;
             this.gitService = gitService;
+            this.diskService = diskService;
         }
 
         public IEnumerable<string> EnumerateCategories() {
@@ -33,21 +35,7 @@ namespace ABCBot.Repositories
         }
 
         public void Dispose() {
-            // An exception is thrown while trying to delete files created by git
-            // Resetting attributes seems to work around this
-            ResetAttributes(new DirectoryInfo(RepositoryDirectory));
-            Directory.Delete(RepositoryDirectory, true);
-        }
-
-        // Source: https://stackoverflow.com/a/30673648
-        private void ResetAttributes(DirectoryInfo directory) {
-            foreach (var subDirectory in directory.GetDirectories()) {
-                ResetAttributes(subDirectory);
-                subDirectory.Attributes = FileAttributes.Normal;
-            }
-            foreach (var file in directory.GetFiles()) {
-                file.Attributes = FileAttributes.Normal;
-            }
+            diskService.DeleteDirectory(RepositoryDirectory);
         }
 
         public Task Checkout(string branchName) {

@@ -15,14 +15,16 @@ namespace ABCBot.Repositories
 
         IGitHubService gitHubService;
         IGitService gitService;
+        IDiskService diskService;
 
-        public MasterRepository(IGitHubService gitHubService, IGitService gitService, string dataPath) {
+        public MasterRepository(IGitHubService gitHubService, IGitService gitService, IDiskService diskService, string dataPath) {
             this.RepositoryDataDirectory = Path.Combine(dataPath, "repositories");
             this.TaskRepositoriesDataDirectory = Path.Combine(RepositoryDataDirectory, "tasks");
             this.MasterRepositoryDirectory = Path.Combine(this.RepositoryDataDirectory, "master");
 
             this.gitHubService = gitHubService;
             this.gitService = gitService;
+            this.diskService = diskService;
         }
 
         public async Task Initialize() {
@@ -42,9 +44,7 @@ namespace ABCBot.Repositories
             var taskDirectory = Path.Combine(TaskRepositoriesDataDirectory, $"task-{identifier}");
 
             // Ensure we get a clean start each time
-            if (Directory.Exists(taskDirectory)) {
-                Directory.Delete(taskDirectory, true);
-            }
+            diskService.DeleteDirectory(taskDirectory);
 
             await gitService.CloneRepository(MasterRepositoryDirectory, taskDirectory);
 
@@ -65,7 +65,7 @@ namespace ABCBot.Repositories
 
             await gitService.CreateRemote(taskDirectory, "bot", botRepository.HtmlUrl);
 
-            return new RepositoryContext(taskDirectory, botRepository.Url, gitCredentials, gitService);
+            return new RepositoryContext(taskDirectory, botRepository.Url, gitCredentials, gitService, diskService);
         }
     }
 }

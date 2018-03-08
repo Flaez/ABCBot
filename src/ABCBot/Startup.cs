@@ -71,7 +71,7 @@ namespace ABCBot
             using (var scope = Services.CreateScope()) {
                 var services = scope.ServiceProvider;
 
-                var masterRepository = new MasterRepository(services.GetService<IGitHubService>(), services.GetService<IGitService>(), dataDirectory);
+                var masterRepository = new MasterRepository(services.GetService<IGitHubService>(), services.GetService<IGitService>(), services.GetService<IDiskService>(), dataDirectory);
 
                 await masterRepository.Initialize();
 
