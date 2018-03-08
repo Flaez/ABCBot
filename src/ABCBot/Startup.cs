@@ -55,6 +55,8 @@ namespace ABCBot
             serviceCollection.AddSingleton<IGitService, GitService>();
             serviceCollection.AddScoped<IMerchantDetailsLoader, GithubIssueMerchantDetailsLoader>();
             serviceCollection.AddScoped<ITwitterService>(provider => new TwitterService(Configuration.GetSection("Twitter")));
+            serviceCollection.AddScoped<INetworkService, NetworkService>();
+            serviceCollection.AddScoped<IDiskService, DiskService>();
 
             serviceCollection.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
 

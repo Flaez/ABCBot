@@ -12,11 +12,13 @@ namespace ABCBot.Pipeline
         public static TaskPipeline BuildStandardPipeline(IPipelineContext context, IServiceProvider services) {
             var announcer = services.GetService<IPipelineAnnouncer>();
             var twitterService = services.GetService<ITwitterService>();
+            var diskService = services.GetService<IDiskService>();
+            var networkService = services.GetService<INetworkService>();
 
             return new TaskPipeline(context, announcer,
                                     new DataVerificationTask(twitterService),
                                     new SetupBranchTask(),
-                                    new ImageAcquisitionTask(),
+                                    new ImageAcquisitionTask(diskService, networkService),
                                     new CompressImageTask(),
                                     new ImagePlacementTask(),
                                     new CategoryYmlAmendmentTask(),

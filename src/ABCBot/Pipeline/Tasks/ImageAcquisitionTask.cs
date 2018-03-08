@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ABCBot.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -9,12 +10,18 @@ namespace ABCBot.Pipeline.Tasks
 {
     public class ImageAcquisitionTask : IPipelineTask
     {
-        public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
-            var imageLocalPath = Path.GetTempFileName();
+        IDiskService diskService;
+        INetworkService networkService;
 
-            using (var webClient = new WebClient()) {
-                await webClient.DownloadFileTaskAsync(context.MerchantDetails.ImageUrl, imageLocalPath);
-            }
+        public ImageAcquisitionTask(IDiskService diskService, INetworkService networkService) {
+            this.diskService = diskService;
+            this.networkService = networkService;
+        }
+
+        public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
+            var imageLocalPath = diskService.GetTempFilePath();
+
+            await networkService.DownloadFile(context.MerchantDetails.ImageUrl, imageLocalPath);
 
             context.Data.Add("ImageLocalPath", imageLocalPath);
 
