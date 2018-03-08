@@ -34,16 +34,7 @@ namespace ABCBot.Pipeline.Tasks
             var merchantEntry = new Dictionary<string, object>();
             merchantEntry.Add("name", context.MerchantDetails.Name);
             merchantEntry.Add("url", context.MerchantDetails.Url);
-            merchantEntry.Add("img", context.MerchantDetails.PlacedImageName);
-            merchantEntry.Add("bch", context.MerchantDetails.AcceptsBCH ? "Yes" : "No");
 
-            // TODO: Add the other fields here
-            if (context.MerchantDetails.AcceptsBTC) {
-                merchantEntry.Add("btc", "Yes");
-            }
-            if (context.MerchantDetails.AcceptsOtherCrypto) {
-                merchantEntry.Add("othercrypto", "Yes");
-            }
             if (!string.IsNullOrEmpty(context.MerchantDetails.EmailAddress)) {
                 merchantEntry.Add("email_address", context.MerchantDetails.EmailAddress);
             }
@@ -54,10 +45,19 @@ namespace ABCBot.Pipeline.Tasks
                 merchantEntry.Add("facebook", context.MerchantDetails.FacebookHandle);
             }
 
+            merchantEntry.Add("img", context.MerchantDetails.PlacedImageName);
+            merchantEntry.Add("bch", context.MerchantDetails.AcceptsBCH ? "Yes" : "No");
+
+            // TODO: Add the other fields here
+            if (context.MerchantDetails.AcceptsBTC) {
+                merchantEntry.Add("btc", "Yes");
+            }
+            if (context.MerchantDetails.AcceptsOtherCrypto) {
+                merchantEntry.Add("othercrypto", "Yes");
+            }
             if (!string.IsNullOrEmpty(context.MerchantDetails.City)) {
                 merchantEntry.Add("city", context.MerchantDetails.City);
             }
-
             if (!string.IsNullOrEmpty(context.MerchantDetails.Language)) {
                 merchantEntry.Add("lang", context.MerchantDetails.Language);
             }
