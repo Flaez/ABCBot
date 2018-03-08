@@ -8,5 +8,6 @@ namespace ABCBot.Services
     public interface INetworkService
     {
         Task DownloadFile(string url, string filePath);
+        Task<bool> TestLiveliness(string url);
     }
 }
