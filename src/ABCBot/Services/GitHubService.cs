@@ -17,6 +17,8 @@ namespace ABCBot.Services
         public string BotRepositoryOwner { get; }
         public string BotRepositoryName { get; }
 
+        public string WebhookSecret { get; }
+
         public Credentials Credentials {
             get { return client.Credentials; }
         }
@@ -33,6 +35,8 @@ namespace ABCBot.Services
 
             BotRepositoryOwner = githubConfigurationSection.GetSection("BotRepository")["Owner"];
             BotRepositoryName = githubConfigurationSection.GetSection("BotRepository")["Name"];
+
+            WebhookSecret = githubConfigurationSection["WebhookSecret"];
         }
 
         public Task<Issue> GetIssue(RepositoryTarget repositoryTarget, int id) {

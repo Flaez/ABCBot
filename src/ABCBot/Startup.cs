@@ -48,6 +48,12 @@ namespace ABCBot
         }
 
         public void ConfigureServices(IServiceCollection services) {
+            var dataDirectory = Configuration["DataDirectory"];
+
+            services.AddSingleton<MasterRepository>(provider => new MasterRepository(provider.GetService<IGitHubService>(), provider.GetService<IGitService>(), provider.GetService<IDiskService>(), dataDirectory));
+
+            services.AddSingleton<IConfiguration>(Configuration);
+
             services.AddSingleton<IGitHubService>(provider => new GitHubService(Configuration.GetSection("Github")));
             services.AddSingleton<IGitService, GitService>();
             services.AddScoped<IMerchantDetailsLoader, GithubIssueMerchantDetailsLoader>();
@@ -56,40 +62,11 @@ namespace ABCBot
             services.AddScoped<IDiskService, DiskService>();
 
             services.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
+            services.AddScoped<IPipelineRunnerService, PipelineRunnerService>();
 
             services.AddMvc();
 
             this.Services = services.BuildServiceProvider();
         }
-
-        private async Task ProcessIssue(int issueId) {
-            var dataDirectory = Configuration["DataDirectory"];
-
-            using (var scope = Services.CreateScope()) {
-                var services = scope.ServiceProvider;
-
-                var masterRepository = new MasterRepository(services.GetService<IGitHubService>(), services.GetService<IGitService>(), services.GetService<IDiskService>(), dataDirectory);
-
-                await masterRepository.Initialize();
-
-                using (var repositoryContext = await masterRepository.CreateContext(issueId)) {
-                    var merchantDetailsLoader = services.GetService<IMerchantDetailsLoader>();
-                    var merchantDetailsOption = await merchantDetailsLoader.ExtractDetails(issueId);
-
-                    var merchantDetails = merchantDetailsOption.ValueOrFailure();
-
-                    var pipelineContext = new PipelineContext(issueId, merchantDetails, repositoryContext);
-
-                    var pipeline = ABCPipelineFactory.BuildStandardPipeline(pipelineContext, services);
-
-                    Log.Information("Starting pipeline for id: {id}", issueId);
-
-                    var result = await pipeline.Process();
-
-                    Log.Information("Pipeline completed: {result}", result);
-                }
-            }
-        }
-
     }
 }
