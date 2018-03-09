@@ -2,8 +2,11 @@
 using ABCBot.Pipeline;
 using ABCBot.Repositories;
 using ABCBot.Services;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Optional;
 using Optional.Unsafe;
 using Serilog;
@@ -20,6 +23,10 @@ namespace ABCBot
         public IConfiguration Configuration { get; private set; }
         public IServiceProvider Services { get; private set; }
 
+        public void ConfigureKestrel(IApplicationBuilder app) {
+            app.UseMvc();
+        }
+
         public void Configure() {
             Configuration = ConfigurationBinder.CreateConfiguration();
 
@@ -32,37 +39,27 @@ namespace ABCBot
                              .CreateLogger();
         }
 
-        public async Task Run() {
+        public void Initialize() {
             Log.Information("Bot is starting.");
 
             Log.Information("Starting to configure services.");
-            await ConfigureServices();
+            ConfigureServices(new ServiceCollection());
             Log.Information("Service configuration complete.");
-
-            Log.Information("Waiting for commands.");
-
-            // This is a dumb waiting mechanism to prevent the bot from closing early
-            // TODO: Switch to a proper event-driven loop later.
-            await Task.Delay(-1);
-
-            Log.Information("Bot is now shutting down.");
         }
 
-        public Task ConfigureServices() {
-            var serviceCollection = new ServiceCollection();
+        public void ConfigureServices(IServiceCollection services) {
+            services.AddSingleton<IGitHubService>(provider => new GitHubService(Configuration.GetSection("Github")));
+            services.AddSingleton<IGitService, GitService>();
+            services.AddScoped<IMerchantDetailsLoader, GithubIssueMerchantDetailsLoader>();
+            services.AddScoped<ITwitterService>(provider => new TwitterService(Configuration.GetSection("Twitter")));
+            services.AddScoped<INetworkService, NetworkService>();
+            services.AddScoped<IDiskService, DiskService>();
 
-            serviceCollection.AddSingleton<IGitHubService>(provider => new GitHubService(Configuration.GetSection("Github")));
-            serviceCollection.AddSingleton<IGitService, GitService>();
-            serviceCollection.AddScoped<IMerchantDetailsLoader, GithubIssueMerchantDetailsLoader>();
-            serviceCollection.AddScoped<ITwitterService>(provider => new TwitterService(Configuration.GetSection("Twitter")));
-            serviceCollection.AddScoped<INetworkService, NetworkService>();
-            serviceCollection.AddScoped<IDiskService, DiskService>();
+            services.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
 
-            serviceCollection.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
+            services.AddMvc();
 
-            this.Services = serviceCollection.BuildServiceProvider();
-
-            return Task.CompletedTask;
+            this.Services = services.BuildServiceProvider();
         }
 
         private async Task ProcessIssue(int issueId) {
