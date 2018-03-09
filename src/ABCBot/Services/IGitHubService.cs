@@ -16,5 +16,6 @@ namespace ABCBot.Services
         Task<IssueComment> CreateComment(RepositoryTarget repositoryTarget, int issueId, string commentBody);
         Task<IReadOnlyList<IssueComment>> GetIssueComments(RepositoryTarget repositoryTarget, int issueId);
         Task<Repository> GetRepository(RepositoryTarget repositoryTarget);
+        Task CreatePullRequest(string title, string sourceBranchName, string targetBranchName, string body = "");
     }
 }

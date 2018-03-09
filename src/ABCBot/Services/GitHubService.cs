@@ -55,6 +55,16 @@ namespace ABCBot.Services
             return client.Repository.Get(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget));
         }
 
+        public Task CreatePullRequest(string title, string sourceBranchName, string targetBranchName, string body = "") {
+            var pullRequest = new NewPullRequest(title, $"refs/heads/{sourceBranchName}", $"refs/heads/{targetBranchName}");
+
+            if (!string.IsNullOrEmpty(body)) {
+                pullRequest.Body = body;
+            }
+
+            return client.Repository.PullRequest.Create(GetRepositoryOwnerForTarget(RepositoryTarget.Upstream), GetRepositoryNameForTarget(RepositoryTarget.Upstream), pullRequest);
+        }
+
         private string GetRepositoryOwnerForTarget(RepositoryTarget target) {
             switch (target) {
                 case RepositoryTarget.Upstream: {

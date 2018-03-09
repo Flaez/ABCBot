@@ -14,6 +14,7 @@ namespace ABCBot.Pipeline
             var twitterService = services.GetService<ITwitterService>();
             var diskService = services.GetService<IDiskService>();
             var networkService = services.GetService<INetworkService>();
+            var githubService = services.GetService<IGitHubService>();
 
             return new TaskPipeline(context, announcer,
                                     new DataVerificationTask(twitterService),
@@ -24,7 +25,8 @@ namespace ABCBot.Pipeline
                                     new ImagePlacementTask(),
                                     new CategoryYmlAmendmentTask(),
                                     new CleanupTask(),
-                                    new CommitChangesTask()
+                                    new CommitChangesTask(),
+                                    new CreatePullRequestTask(githubService)
                                     );
         }
     }
