@@ -1,5 +1,6 @@
 ﻿using ABCBot.Interop;
 using ABCBot.Pipeline;
+using ABCBot.Pipeline.GitHub;
 using ABCBot.Repositories;
 using ABCBot.Services;
 using Microsoft.AspNetCore.Builder;
@@ -61,7 +62,11 @@ namespace ABCBot
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IDiskService, DiskService>();
 
-            services.AddScoped<IPipelineAnnouncer, SerilogPipelineAnnouncer>();
+            services.AddScoped<IPipelineAnnouncer, PipelineAnnouncerGroup>(provider =>
+            {
+                return new PipelineAnnouncerGroup(new SerilogPipelineAnnouncer(), new GitHubPipelineAnnouncer(provider.GetService<IGitHubService>()));
+            });
+
             services.AddScoped<IPipelineRunnerService, PipelineRunnerService>();
 
             services.AddMvc();
