@@ -86,6 +86,7 @@ If everything looks okay, Add it to the site:
 
             var githubService = new Mock<IGitHubService>();
             githubService.Setup(x => x.GetIssue(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issue);
+            githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(new List<IssueComment>());
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 
@@ -106,25 +107,26 @@ If everything looks okay, Add it to the site:
         }
 
         [Fact]
-        public void ItShouldApplyCommentCommandsToMerchantDetails() {
+        public async Task ItShouldApplyCommentCommandsToMerchantDetails() {
             var url = "https://google.com";
             var name = "Google";
 
             var adminUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
-                                     0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                     0, null, "", 0, 0, "", "admin", null, 0, null, 0, 0, 0, "",
                                      new RepositoryPermissions(true, true, true), false, "", null);
 
             var collaboratorUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
-                                    0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                    0, null, "", 0, 0, "", "collaborator", null, 0, null, 0, 0, 0, "",
                                     new RepositoryPermissions(false, true, false), false, "", null);
 
             var externalUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
-                                    0, null, "", 0, 0, "", "", "", 0, null, 0, 0, 0, "",
+                                    0, null, "", 0, 0, "", "external", null, 0, null, 0, 0, 0, "",
                                     new RepositoryPermissions(false, false, false), false, "", null);
 
             var externalUserCommentBody = @"Wow, this looks great!
 
 Will this be included in the next release? Can't wait!";
+            var secondExternalUserCommentBody = @"/abc url https://evilsite.org";
 
             var collaboratorUserCommentBody = $"/abc url {url}";
             var secondCollaboratorUserCommentBody = $"/abc name {name}";
@@ -134,23 +136,27 @@ Will this be included in the next release? Can't wait!";
             var collaboratorUserComment = new IssueComment(0, "", "", collaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
             var secondCollaboratorUserComment = new IssueComment(0, "", "", secondCollaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
             var adminUserComment = new IssueComment(0, "", "", adminUserCommentBody, DateTimeOffset.MinValue, null, adminUser);
+            var secondExternalUserComment = new IssueComment(0, "", "", secondExternalUserCommentBody, DateTimeOffset.MinValue, null, externalUser);
 
             var issueComments = new List<IssueComment>()
             {
                 externalUserComment,
                 collaboratorUserComment,
                 secondCollaboratorUserComment,
-                adminUserComment
+                adminUserComment,
+                secondExternalUserComment
             };
 
             var merchantDetails = new MerchantDetails();
 
             var githubService = new Mock<IGitHubService>();
             githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issueComments);
+            githubService.Setup(x => x.IsCollaborator(It.IsAny<RepositoryTarget>(), It.Is<string>(y => y == "admin" || y == "collaborator"))).ReturnsAsync(true);
+            githubService.Setup(x => x.IsCollaborator(It.IsAny<RepositoryTarget>(), It.Is<string>(y => y == "external"))).ReturnsAsync(false);
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 
-            detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, merchantDetails);
+            await detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, merchantDetails);
 
             Assert.Equal(url, merchantDetails.Url);
             Assert.Equal(name, merchantDetails.Name);

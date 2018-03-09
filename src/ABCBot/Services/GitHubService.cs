@@ -55,6 +55,10 @@ namespace ABCBot.Services
             return client.Repository.Get(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget));
         }
 
+        public Task<bool> IsCollaborator(RepositoryTarget repositoryTarget, string user) {
+            return client.Repository.Collaborator.IsCollaborator(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget), user);
+        }
+
         public Task CreatePullRequest(string title, string sourceBranchName, string targetBranchName, string body = "") {
             var pullRequest = new NewPullRequest(title, $"refs/heads/{sourceBranchName}", $"refs/heads/{targetBranchName}");
 

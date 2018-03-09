@@ -62,6 +62,10 @@ namespace ABCBot.Interop
                 }
             }
 
+            var issueComments = await githubService.GetIssueComments(RepositoryTarget.Upstream, issue.Number);
+
+            await ApplyIssueCommentCommandsToMerchantDetails(issueComments, merchantDetails);
+
             return Option.Some(merchantDetails);
         }
 
@@ -160,24 +164,34 @@ namespace ABCBot.Interop
             return true;
         }
 
-        public void ApplyIssueCommentCommandsToMerchantDetails(IReadOnlyList<IssueComment> comments, MerchantDetails merchantDetails) {
+        public async Task ApplyIssueCommentCommandsToMerchantDetails(IReadOnlyList<IssueComment> comments, MerchantDetails merchantDetails) {
+            var collaboratorStates = new Dictionary<string, bool>();
+
             // Only apply comment commands from collaborators
-            foreach (var comment in comments.Where(x => x.User.Permissions.Admin || x.User.Permissions.Push)) {
+            foreach (var comment in comments) {
 
-                var document = CommonMarkConverter.Parse(comment.Body);
-                foreach (var node in document.AsEnumerable()) {
-                    if (node.IsOpening && node.Block?.Tag == CommonMark.Syntax.BlockTag.Paragraph) {
-                        var maybeCommand = node.Block.InlineContent.LiteralContent;
+                var collaboratorState = false;
+                if (!collaboratorStates.TryGetValue(comment.User.Login, out collaboratorState)) {
+                    collaboratorState = await githubService.IsCollaborator(RepositoryTarget.Upstream, comment.User.Login);
+                    collaboratorStates.Add(comment.User.Login, collaboratorState);
+                }
 
-                        if (maybeCommand.StartsWith("/abc ")) {
-                            var command = maybeCommand.Substring("/abc ".Length);
+                if (collaboratorState) { // Only process comments from collaborators - we don't want other users altering data
+                    var document = CommonMarkConverter.Parse(comment.Body);
+                    foreach (var node in document.AsEnumerable()) {
+                        if (node.IsOpening && node.Block?.Tag == CommonMark.Syntax.BlockTag.Paragraph) {
+                            var maybeCommand = node.Block.InlineContent.LiteralContent;
 
-                            var firstSpacePosition = command.IndexOf(' ');
+                            if (maybeCommand.StartsWith("/abc ")) {
+                                var command = maybeCommand.Substring("/abc ".Length);
 
-                            var key = command.Substring(0, firstSpacePosition);
-                            var value = command.Substring(firstSpacePosition + 1, (command.Length - firstSpacePosition - 1));
+                                var firstSpacePosition = command.IndexOf(' ');
 
-                            MapYmlKeyToDetails(merchantDetails, key, value);
+                                var key = command.Substring(0, firstSpacePosition);
+                                var value = command.Substring(firstSpacePosition + 1, (command.Length - firstSpacePosition - 1));
+
+                                MapYmlKeyToDetails(merchantDetails, key, value);
+                            }
                         }
                     }
                 }
