@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Octokit;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,6 +29,7 @@ namespace ABCBot.Services
 
             if (!string.IsNullOrEmpty(githubConfigurationSection["Token"])) {
                 client.Credentials = new Credentials(githubConfigurationSection["Token"]);
+                Log.Information("Github token set.");
             }
 
             RepositoryOwner = githubConfigurationSection.GetSection("Repository")["Owner"];
@@ -37,6 +39,9 @@ namespace ABCBot.Services
             BotRepositoryName = githubConfigurationSection.GetSection("BotRepository")["Name"];
 
             WebhookSecret = githubConfigurationSection["WebhookSecret"];
+
+            Log.Information("Using {owner}/{name} as the master repository.", RepositoryOwner, RepositoryName);
+            Log.Information("Using {owner}/{name} as the bot repository", BotRepositoryOwner, BotRepositoryName);
         }
 
         public Task<Issue> GetIssue(RepositoryTarget repositoryTarget, int id) {
