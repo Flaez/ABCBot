@@ -19,7 +19,10 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var merchantDetails = new MerchantDetails()
             {
-                Url = "http://google.com"
+                Values =
+                {
+                    { "url", new MerchantDetailsItem() { Value = "http://google.com" } }
+                }
             };
 
             var networkService = new Mock<INetworkService>();
@@ -32,7 +35,7 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var result = await task.Process(context.Object);
 
-            Assert.Equal(httpsUrlVariant, merchantDetails.Url);
+            Assert.Equal(httpsUrlVariant, merchantDetails.Values["url"].Value);
         }
 
         [Fact]
@@ -42,7 +45,10 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var merchantDetails = new MerchantDetails()
             {
-                Url = httpUrlVariant
+                Values =
+                {
+                    { "url", new MerchantDetailsItem() { Value = httpUrlVariant } }
+                }
             };
 
             var networkService = new Mock<INetworkService>();
@@ -55,7 +61,7 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var result = await task.Process(context.Object);
 
-            Assert.Equal(httpUrlVariant, merchantDetails.Url);
+            Assert.Equal(httpUrlVariant, merchantDetails.Values["url"].Value);
         }
 
         [Fact]
@@ -64,7 +70,10 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var merchantDetails = new MerchantDetails()
             {
-                Url = httpsUrlVariant
+                Values =
+                {
+                    { "url", new MerchantDetailsItem() { Value = httpsUrlVariant } }
+                }
             };
 
             var networkService = new Mock<INetworkService>();
@@ -77,7 +86,7 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var result = await task.Process(context.Object);
 
-            Assert.Equal(httpsUrlVariant, merchantDetails.Url);
+            Assert.Equal(httpsUrlVariant, merchantDetails.Values["url"].Value);
         }
     }
 }

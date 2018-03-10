@@ -15,8 +15,8 @@ namespace ABCBot.Pipeline.Tasks
                 return Task.FromResult(PipelineProcessingResult.Failure("Unable to find local copy of compressed merchant image."));
             }
 
-            var targetImageName = context.MerchantDetails.Name.Sanitize();
-            var targetImagePath = Path.Combine(context.RepositoryContext.RepositoryDirectory, "img", context.MerchantDetails.Category, $"{targetImageName}.png").ToLower();
+            var targetImageName = context.MerchantDetails.Values["name"].Value.Sanitize();
+            var targetImagePath = Path.Combine(context.RepositoryContext.RepositoryDirectory, "img", context.MerchantDetails.Values["category"].Value, $"{targetImageName}.png").ToLower();
 
             File.Copy(compressedImagePath, targetImagePath, true);
 

@@ -2,6 +2,7 @@
 using ABCBot.Pipeline;
 using ABCBot.Pipeline.GitHub;
 using ABCBot.Repositories;
+using ABCBot.Schema;
 using ABCBot.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -61,6 +62,7 @@ namespace ABCBot
             services.AddScoped<ITwitterService>(provider => new TwitterService(Configuration.GetSection("Twitter")));
             services.AddScoped<INetworkService, NetworkService>();
             services.AddScoped<IDiskService, DiskService>();
+            services.AddScoped<ISchemaLoader, SchemaLoader>();
 
             services.AddScoped<IPipelineAnnouncer, PipelineAnnouncerGroup>(provider =>
             {

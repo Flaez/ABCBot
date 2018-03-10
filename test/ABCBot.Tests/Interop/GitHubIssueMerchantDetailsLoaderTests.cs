@@ -1,11 +1,13 @@
 ﻿using ABCBot.Interop;
 using ABCBot.Models;
+using ABCBot.Schema;
 using ABCBot.Services;
 using Moq;
 using Octokit;
 using Optional.Unsafe;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -53,11 +55,11 @@ If everything looks okay, Add it to the site:
             var detailsLoader = new GithubIssueMerchantDetailsLoader(Mock.Of<IGitHubService>());
             var merchantDetails = new MerchantDetails();
 
-            var result = detailsLoader.TryExtractDetailsFromTitle(title, merchantDetails);
+            var result = detailsLoader.ExtractDetailsFromTitle(title, merchantDetails);
 
             Assert.True(result);
-            Assert.Equal(sampleMerchantName, merchantDetails.Name);
-            Assert.Equal(sampleCategory, merchantDetails.Category);
+            Assert.Equal(sampleMerchantName, merchantDetails.Values["name"].Value);
+            Assert.Equal(sampleCategory, merchantDetails.Values["category"].Value);
         }
 
         [Fact]
@@ -84,32 +86,85 @@ If everything looks okay, Add it to the site:
             var title = $"Add '{sampleMerchantName}' to the '{sampleCategory}' category";
             var issue = new Issue("", "", "", "", 0, ItemState.Open, title, sampleBody, null, null, null, null, null, null, 0, null, null, DateTimeOffset.MinValue, null, 0, false, null);
 
+            var schema = new MappingSchemaItem()
+            {
+                Mapping =
+                {
+                    { "websites", new SequenceSchemaItem()
+                        {
+                            Items =
+                            {
+                                new MappingSchemaItem()
+                                {
+                                    Name = "Website",
+                                    Mapping =
+                                    {
+                                        { "name", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } },
+                                        { "url", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } },
+                                        { "img", new KeyValueSchemaItem() { Type = "str", Pattern = @"/\.png$/i" } },
+                                        { "bch", new KeyValueSchemaItem() { Type = "bool", Required = true } },
+                                        { "btc", new KeyValueSchemaItem() { Type = "bool" } },
+                                        { "othercrypto", new KeyValueSchemaItem() { Type = "bool" } },
+                                        { "facebook", new KeyValueSchemaItem() { Type = "str", Pattern = @"/(\w){1,50}$/" } },
+                                        { "email_address", new KeyValueSchemaItem() { Type = "str", Pattern = @"/\A([\w+\-].?)+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i" } },
+                                        { "doc", new KeyValueSchemaItem() { Type = "str" } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             var githubService = new Mock<IGitHubService>();
             githubService.Setup(x => x.GetIssue(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issue);
             githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(new List<IssueComment>());
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 
-            var result = await detailsLoader.ExtractDetails(0);
+            var result = await detailsLoader.ExtractDetails(schema, 0);
 
             var loadedMerchantDetails = result.ValueOrFailure();
 
-            Assert.Equal(sampleMerchantName, loadedMerchantDetails.Name);
-            Assert.Equal(sampleCategory, loadedMerchantDetails.Category);
-            Assert.Equal("https://9figures.co.uk/", loadedMerchantDetails.Url);
-            Assert.Equal("", loadedMerchantDetails.ImageUrl);
-            Assert.Equal("9figuresuk", loadedMerchantDetails.FacebookHandle);
-            Assert.Equal("9figurescompany@gmail.com", loadedMerchantDetails.EmailAddress);
-            Assert.True(loadedMerchantDetails.AcceptsBCH);
-            Assert.False(loadedMerchantDetails.AcceptsBTC);
-            Assert.True(loadedMerchantDetails.AcceptsOtherCrypto);
-            Assert.Equal("https://9figures.co.uk/blogs/news/accepting-cryptocurrency-1", loadedMerchantDetails.Document);
+            Assert.Equal(sampleMerchantName, loadedMerchantDetails.Values["name"].Value);
+            Assert.Equal(sampleCategory, loadedMerchantDetails.Values["category"].Value);
+            Assert.Equal("https://9figures.co.uk/", loadedMerchantDetails.Values["url"].Value);
+            Assert.Equal("", loadedMerchantDetails.Values["img"].Value);
+            Assert.Equal("9figuresuk", loadedMerchantDetails.Values["facebook"].Value);
+            Assert.Equal("9figurescompany@gmail.com", loadedMerchantDetails.Values["email_address"].Value);
+            Assert.True(loadedMerchantDetails.Values["bch"].Value.ToBoolean());
+            Assert.False(loadedMerchantDetails.Values["btc"].Value.ToBoolean());
+            Assert.True(loadedMerchantDetails.Values["othercrypto"].Value.ToBoolean());
+            Assert.Equal("https://9figures.co.uk/blogs/news/accepting-cryptocurrency-1", loadedMerchantDetails.Values["doc"].Value);
         }
 
         [Fact]
         public async Task ItShouldApplyCommentCommandsToMerchantDetails() {
             var url = "https://google.com";
             var name = "Google";
+
+            var schema = new MappingSchemaItem()
+            {
+                Mapping =
+                {
+                    { "websites", new SequenceSchemaItem()
+                        {
+                            Items =
+                            {
+                                new MappingSchemaItem()
+                                {
+                                    Name = "Website",
+                                    Mapping =
+                                    {
+                                        { "name", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } },
+                                        { "url", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
             var adminUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
                                      0, null, "", 0, 0, "", "admin", null, 0, null, 0, 0, 0, "",
@@ -156,10 +211,10 @@ Will this be included in the next release? Can't wait!";
 
             var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
 
-            await detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, merchantDetails);
+            await detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, schema, merchantDetails);
 
-            Assert.Equal(url, merchantDetails.Url);
-            Assert.Equal(name, merchantDetails.Name);
+            Assert.Equal(url, merchantDetails.Values["url"].Value);
+            Assert.Equal(name, merchantDetails.Values["name"].Value);
         }
     }
 }

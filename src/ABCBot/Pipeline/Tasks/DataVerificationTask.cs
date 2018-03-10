@@ -1,4 +1,6 @@
-﻿using ABCBot.Services;
+﻿using ABCBot.Models;
+using ABCBot.Schema;
+using ABCBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,32 +20,26 @@ namespace ABCBot.Pipeline.Tasks
         public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
             var missingFields = new List<string>();
 
-            if (string.IsNullOrEmpty(context.MerchantDetails.Name)) {
-                missingFields.Add("name");
-            }
-            if (string.IsNullOrEmpty(context.MerchantDetails.ImageUrl)) {
-                bool discoveredImage = false;
+            var baseSchemaItem = (((context.Schema as MappingSchemaItem).Mapping["websites"] as SequenceSchemaItem).Items[0] as MappingSchemaItem);
 
-                // Try to find an image for the merchant using the twitter account
-                if (!string.IsNullOrEmpty(context.MerchantDetails.TwitterHandle)) {
-                    var twitterProfileImageUrl = await twitterService.GetProfileImageUrl(context.MerchantDetails.TwitterHandle);
+            foreach (var kvp in baseSchemaItem.Mapping) {
+                switch (kvp.Value) {
+                    case KeyValueSchemaItem keyValueItem:
+                        if (!context.MerchantDetails.Values.ContainsKey(kvp.Key) || string.IsNullOrEmpty(context.MerchantDetails.Values[kvp.Key].Value)) {
+                            await TryResolveMissingKey(context.MerchantDetails, kvp.Key);
+                        }
 
-                    if (!string.IsNullOrEmpty(twitterProfileImageUrl)) {
-                        context.MerchantDetails.ImageUrl = twitterProfileImageUrl;
-                        discoveredImage = true;
-                    }
+                        if (keyValueItem.Required) {
+                            if (!context.MerchantDetails.Values.ContainsKey(kvp.Key) || string.IsNullOrEmpty(context.MerchantDetails.Values[kvp.Key].Value)) {
+                                missingFields.Add(kvp.Key);
+                            }
+                        }
+                        break;
                 }
-
-                if (!discoveredImage) {
-                    missingFields.Add("img");
-                }
-            }
-            if (string.IsNullOrEmpty(context.MerchantDetails.Url)) {
-                missingFields.Add("url");
             }
 
             // Check categories
-            if (!context.RepositoryContext.EnumerateCategories().Contains(context.MerchantDetails.Category, StringComparer.OrdinalIgnoreCase)) {
+            if (!context.MerchantDetails.Values.ContainsKey("category") || !context.RepositoryContext.EnumerateCategories().Contains(context.MerchantDetails.Values["category"].Value, StringComparer.OrdinalIgnoreCase)) {
                 missingFields.Add("category");
             }
 
@@ -60,6 +56,26 @@ namespace ABCBot.Pipeline.Tasks
                 return PipelineProcessingResult.Failure(messageBuilder.ToString());
             }
 
+        }
+
+        private async Task<bool> TryResolveMissingKey(MerchantDetails merchantDetails, string key) {
+            switch (key) {
+                case "img": {
+                        if (merchantDetails.Values.ContainsKey("twitter") && !string.IsNullOrEmpty(merchantDetails.Values["twitter"].Value)) {
+                            // Try to find an image for the merchant using the twitter account
+                            var twitterProfileImageUrl = await twitterService.GetProfileImageUrl(merchantDetails.Values["twitter"].Value);
+
+                            if (!string.IsNullOrEmpty(twitterProfileImageUrl)) {
+                                merchantDetails.UpsertValue("img").Value = twitterProfileImageUrl;
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+            }
+
+            return false;
         }
     }
 }

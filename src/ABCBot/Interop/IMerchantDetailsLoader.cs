@@ -1,4 +1,5 @@
 ﻿using ABCBot.Models;
+using ABCBot.Schema;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,6 @@ namespace ABCBot.Interop
 {
     public interface IMerchantDetailsLoader
     {
-        Task<Option<MerchantDetails>> ExtractDetails(int identifier);
+        Task<Option<MerchantDetails>> ExtractDetails(ISchemaItem schema, int identifier);
     }
 }

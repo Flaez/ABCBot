@@ -1,0 +1,86 @@
+﻿using ABCBot.Schema;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace ABCBot.Tests
+{
+    public class SchemaTests
+    {
+        private readonly static string Schema = @"type: map
+mapping:
+  ""websites"":
+    type: seq
+    sequence:
+      - type: map
+        name: Website
+        mapping:
+          ""name"":
+            type: str
+            required: yes
+            unique: yes
+          ""url"":
+            type: str
+            pattern: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,8}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/
+            required: yes
+            unique: yes
+          ""img"":
+            type: str
+            pattern: /\.png$/i
+          ""bch"":
+            type: bool
+            required: yes
+            pattern: /(true|false)/
+          ""btc"":
+            type: bool
+            pattern: /(true|false)/
+          ""othercrypto"":
+            type: bool
+            pattern: /(true|false)/
+          ""exceptions"":
+            type: map
+            mapping:
+              ""text"":
+                type: str
+                required: yes
+          ""doc"":
+            type: str
+          ""twitter"":
+            type: str
+            pattern: /(\w){1,15}$/
+          ""facebook"":
+            type: str
+            pattern: /(\w){1,50}$/
+          ""email_address"":
+            type: str
+            pattern: /\A([\w+\-].?)+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
+          ""status"":
+            type: str
+            pattern: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,8}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/
+          ""lang"":
+            type: str
+          ""region"":
+            type: str
+            pattern: /(\w){2}$/
+          ""country"":
+            type: str
+            pattern: /(\w){2}$/
+          ""state"":
+            type: str
+          ""city"": 
+            type: str";
+
+        [Fact]
+        public void ItShouldLoadSchema() {
+            var loader = new SchemaLoader();
+
+            ISchemaItem schema;
+            using (var stringReader = new StringReader(Schema)) {
+                schema = loader.LoadSchema(stringReader);
+            }
+        }
+    }
+}

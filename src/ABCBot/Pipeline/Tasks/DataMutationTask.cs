@@ -15,11 +15,13 @@ namespace ABCBot.Pipeline.Tasks
         }
 
         public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
-            if (context.MerchantDetails.Url.StartsWith("http://")) {
-                var secureUrl = context.MerchantDetails.Url.Replace("http://", "https://");
+            var url = context.MerchantDetails.Values["url"].Value;
+
+            if (url.StartsWith("http://")) {
+                var secureUrl = url.Replace("http://", "https://");
 
                 if (await networkService.TestLiveliness(secureUrl)) {
-                    context.MerchantDetails.Url = secureUrl;
+                    context.MerchantDetails.UpsertValue("url").Value = secureUrl;
                 }
             }
 

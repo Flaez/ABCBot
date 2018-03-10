@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ABCBot.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace ABCBot.Pipeline.Tasks
     public class CategoryYmlAmendmentTask : IPipelineTask
     {
         public Task<PipelineProcessingResult> Process(IPipelineContext context) {
-            var categoryFileName = $"{context.MerchantDetails.Category.ToLower()}.yml";
+            var categoryFileName = $"{context.MerchantDetails.Values["category"].Value.ToLower()}.yml";
             var categoryFilePath = Path.Combine(context.RepositoryContext.RepositoryDirectory, "_data", categoryFileName);
 
             var deserializer = new DeserializerBuilder()
@@ -32,38 +33,10 @@ namespace ABCBot.Pipeline.Tasks
             var websitesCollection = document["websites"];
 
             var merchantEntry = new Dictionary<string, object>();
-            merchantEntry.Add("name", context.MerchantDetails.Name);
-            merchantEntry.Add("url", context.MerchantDetails.Url);
-            merchantEntry.Add("img", context.MerchantDetails.PlacedImageName);
-
-            if (!string.IsNullOrEmpty(context.MerchantDetails.EmailAddress)) {
-                merchantEntry.Add("email_address", context.MerchantDetails.EmailAddress);
-            }
-            if (!string.IsNullOrEmpty(context.MerchantDetails.TwitterHandle)) {
-                merchantEntry.Add("twitter", context.MerchantDetails.TwitterHandle);
-            }
-            if (!string.IsNullOrEmpty(context.MerchantDetails.FacebookHandle)) {
-                merchantEntry.Add("facebook", context.MerchantDetails.FacebookHandle);
-            }
-
-            merchantEntry.Add("bch", context.MerchantDetails.AcceptsBCH ? "Yes" : "No");
-
-            // TODO: Add the other fields here
-            if (context.MerchantDetails.AcceptsBTC) {
-                merchantEntry.Add("btc", "Yes");
-            }
-            if (context.MerchantDetails.AcceptsOtherCrypto) {
-                merchantEntry.Add("othercrypto", "Yes");
-            }
-            if (!string.IsNullOrEmpty(context.MerchantDetails.City)) {
-                merchantEntry.Add("city", context.MerchantDetails.City);
-            }
-            if (!string.IsNullOrEmpty(context.MerchantDetails.Language)) {
-                merchantEntry.Add("lang", context.MerchantDetails.Language);
-            }
-
-            if (!string.IsNullOrEmpty(context.MerchantDetails.Document)) {
-                merchantEntry.Add("doc", context.MerchantDetails.Document);
+            foreach (var kvp in context.MerchantDetails.Values) {
+                if (kvp.Value.SchemaItem != null) {
+                    AddDetailsToMerchantEntry(merchantEntry, context.MerchantDetails, kvp.Key, kvp.Value);
+                }
             }
 
             websitesCollection.Add(merchantEntry);
@@ -79,6 +52,20 @@ namespace ABCBot.Pipeline.Tasks
             File.WriteAllText(categoryFilePath, yml);
 
             return Task.FromResult(PipelineProcessingResult.Success());
+        }
+
+        private void AddDetailsToMerchantEntry(Dictionary<string, object> merchantEntry, MerchantDetails merchantDetails, string key, MerchantDetailsItem item) {
+            switch (key) {
+                case "img": {
+                        // Use the placed image path instead of the original image url
+                        merchantEntry.Add(key, merchantDetails.PlacedImageName);
+                    }
+                    break;
+                default: {
+                        merchantEntry.Add(key, item.Value);
+                    }
+                    break;
+            }
         }
 
         // This is a bit of a hack to add spaces between list items in the generated yml

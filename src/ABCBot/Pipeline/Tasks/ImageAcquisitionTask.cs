@@ -21,7 +21,7 @@ namespace ABCBot.Pipeline.Tasks
         public async Task<PipelineProcessingResult> Process(IPipelineContext context) {
             var imageLocalPath = diskService.GetTempFilePath();
 
-            await networkService.DownloadFile(context.MerchantDetails.ImageUrl, imageLocalPath);
+            await networkService.DownloadFile(context.MerchantDetails.Values["img"].Value, imageLocalPath);
 
             context.Data.Add("ImageLocalPath", imageLocalPath);
 

@@ -21,7 +21,10 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             var merchantDetails = new MerchantDetails()
             {
-                ImageUrl = imageUrl
+                Values =
+                {
+                    { "img", new MerchantDetailsItem() {Value = imageUrl} }
+                }
             };
 
             var dataCollection = new Dictionary<string, object>();
