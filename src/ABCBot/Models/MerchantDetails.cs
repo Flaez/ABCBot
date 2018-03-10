@@ -22,5 +22,30 @@ namespace ABCBot.Models
 
             return value;
         }
+
+        public Dictionary<string, object> Export() {
+            var merchantEntry = new Dictionary<string, object>();
+            foreach (var kvp in Values) {
+                if (kvp.Value.SchemaItem != null) {
+                    AddDetailsToMerchantEntry(merchantEntry, kvp.Key, kvp.Value);
+                }
+            }
+
+            return merchantEntry;
+        }
+
+        private void AddDetailsToMerchantEntry(Dictionary<string, object> merchantEntry, string key, MerchantDetailsItem item) {
+            switch (key) {
+                case "img": {
+                        // Use the placed image path instead of the original image url
+                        merchantEntry.Add(key, PlacedImageName);
+                    }
+                    break;
+                default: {
+                        merchantEntry.Add(key, item.Value);
+                    }
+                    break;
+            }
+        }
     }
 }

@@ -32,14 +32,7 @@ namespace ABCBot.Pipeline.Tasks
 
             var websitesCollection = document["websites"];
 
-            var merchantEntry = new Dictionary<string, object>();
-            foreach (var kvp in context.MerchantDetails.Values) {
-                if (kvp.Value.SchemaItem != null) {
-                    AddDetailsToMerchantEntry(merchantEntry, context.MerchantDetails, kvp.Key, kvp.Value);
-                }
-            }
-
-            websitesCollection.Add(merchantEntry);
+            websitesCollection.Add(context.MerchantDetails.Export());
 
             document["websites"] = websitesCollection.OrderBy(x => x["name"]).ToList();
 
@@ -52,20 +45,6 @@ namespace ABCBot.Pipeline.Tasks
             File.WriteAllText(categoryFilePath, yml);
 
             return Task.FromResult(PipelineProcessingResult.Success());
-        }
-
-        private void AddDetailsToMerchantEntry(Dictionary<string, object> merchantEntry, MerchantDetails merchantDetails, string key, MerchantDetailsItem item) {
-            switch (key) {
-                case "img": {
-                        // Use the placed image path instead of the original image url
-                        merchantEntry.Add(key, merchantDetails.PlacedImageName);
-                    }
-                    break;
-                default: {
-                        merchantEntry.Add(key, item.Value);
-                    }
-                    break;
-            }
         }
 
         // This is a bit of a hack to add spaces between list items in the generated yml
