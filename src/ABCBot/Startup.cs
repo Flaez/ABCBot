@@ -37,6 +37,7 @@ namespace ABCBot
 
         private void ConfigureGlobalLogger() {
             Log.Logger = new LoggerConfiguration()
+                             .MinimumLevel.Verbose()
                              .WriteTo.Console()
                              .CreateLogger();
         }
