@@ -1,7 +1,19 @@
 language: csharp
 mono: none
 dotnet: 2.0.0
-script:
-  - dotnet restore ./ABCBot.sln
-  - dotnet build ./src/ABCBot/ABCBot.csproj
-  - dotnet test ./test/ABCBot.Tests/ABCBot.Tests.csproj
+services:
+  - docker
+jobs:
+  include:
+    - stage: build and test
+      script:
+        - dotnet restore ./ABCBot.sln
+        - dotnet build ./src/ABCBot/ABCBot.csproj
+        - dotnet test ./test/ABCBot.Tests/ABCBot.Tests.csproj
+    - stage: publish
+      script:
+        - dotnet restore ./ABCBot.sln
+        - dotnet publish ./src/ABCBot/ABCBot.csproj -c Release
+        - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD
+        - docker build ./src/ABCBot/ -f ./src/ABCBot/Dockerfile -t flaez/abcbot
+        - docker push flaez/abcbot
