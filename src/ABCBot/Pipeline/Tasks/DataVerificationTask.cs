@@ -29,7 +29,8 @@ namespace ABCBot.Pipeline.Tasks
                             await TryResolveMissingKey(context.MerchantDetails, kvp.Key);
                         }
 
-                        if (keyValueItem.Required) {
+                        // Special exception for the img tag. The bot needs it to run the pipeline.
+                        if (keyValueItem.Required || kvp.Key == "img") {
                             if (!context.MerchantDetails.Values.ContainsKey(kvp.Key) || string.IsNullOrEmpty(context.MerchantDetails.Values[kvp.Key].Value)) {
                                 missingFields.Add(kvp.Key);
                             }

@@ -178,5 +178,44 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             Assert.Equal(twitterProfileImageUrl, merchantDetails.Values["img"].Value);
         }
+
+
+        [Fact]
+        public async Task ItShouldFailIfImageUrlEmptyAndTwitterHandleIsAvailableAndTwitterProfileUrlEmpty() {
+            var taskIdentifier = 5;
+
+            var merchantDetails = new MerchantDetails()
+            {
+                Values =
+                {
+                    { "img", new MerchantDetailsItem() { Value = "" } },
+                    { "name", new MerchantDetailsItem() { Value = "test" } },
+                    { "category", new MerchantDetailsItem() { Value = "test" } },
+                    { "url", new MerchantDetailsItem() { Value = "http://test" } },
+                    { "bch", new MerchantDetailsItem() { Value = "Yes" } },
+                    { "twitter", new MerchantDetailsItem() { Value = "test" } },
+                }
+            };
+
+            var repositoryContext = new Mock<IRepositoryContext>();
+            repositoryContext.Setup(x => x.EnumerateCategories()).Returns(new string[] { "test" });
+
+            var context = new Mock<IPipelineContext>();
+            context.SetupGet(x => x.TaskIdentifier).Returns(taskIdentifier);
+            context.SetupGet(x => x.MerchantDetails).Returns(merchantDetails);
+            context.SetupGet(x => x.Data).Returns(new Dictionary<string, object>());
+            context.SetupGet(x => x.RepositoryContext).Returns(repositoryContext.Object);
+            context.SetupGet(x => x.Schema).Returns(schema);
+
+            var twitterService = new Mock<ITwitterService>();
+            twitterService.Setup(x => x.GetProfileImageUrl(It.Is<string>(y => y == merchantDetails.Values["twitter"].Value))).ReturnsAsync("");
+
+            var task = BuildTask(twitterService: twitterService.Object);
+
+            var result = await task.Process(context.Object);
+
+            Assert.Equal("", merchantDetails.Values["img"].Value);
+            Assert.False(result.IsSuccess);
+        }
     }
 }
