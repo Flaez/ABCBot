@@ -32,7 +32,22 @@ namespace ABCBot.Pipeline.Tasks
 
             var websitesCollection = document["websites"];
 
-            websitesCollection.Add(context.MerchantDetails.Export());
+            var merchantEntry = context.MerchantDetails.Export();
+
+            var existingEntry = websitesCollection.Where(x => ((string)x["url"]).ToLower().TrimEnd('/') == context.MerchantDetails.Values["url"].Value.ToLower().TrimEnd('/')).FirstOrDefault();
+
+            if (existingEntry != null) {
+                websitesCollection.Remove(existingEntry);
+
+                // Copy fields from the original entry to the new one
+                // Only copy fields that aren't already on the new one - new fields take priority
+                foreach (var key in existingEntry.Keys) {
+                    if (!merchantEntry.ContainsKey(key)) {
+                        merchantEntry.Add(key, existingEntry[key]);
+                    }
+                }
+            }
+            websitesCollection.Add(merchantEntry);
 
             document["websites"] = websitesCollection.OrderBy(x => x["name"]).ToList();
 
