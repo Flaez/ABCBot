@@ -69,7 +69,7 @@ namespace ABCBot.Services
         }
 
         public Task CreatePullRequest(string title, string sourceBranchName, string targetBranchName, string body = "") {
-            var pullRequest = new NewPullRequest(title, $"refs/heads/{sourceBranchName}", $"refs/heads/{targetBranchName}");
+            var pullRequest = new NewPullRequest(title, $"{GetRepositoryOwnerForTarget(RepositoryTarget.Bot)}:{sourceBranchName}", targetBranchName);
 
             if (!string.IsNullOrEmpty(body)) {
                 pullRequest.Body = body;
