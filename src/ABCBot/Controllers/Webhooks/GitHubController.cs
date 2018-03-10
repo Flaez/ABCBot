@@ -1,6 +1,7 @@
 ﻿using ABCBot.Services;
 using ABCBot.ViewModels.GitHub;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,11 +37,17 @@ namespace ABCBot.Controllers.Webhooks
 
         [HttpPost("issues")]
         public async Task<IActionResult> HandleIssuesWebhook([FromHeader(Name = "X-Hub-Signature")] string secret, [FromBody] IssueWebHookViewModel viewModel) {
+            Log.Information($"Starting to process incoming request for issue #{viewModel.Issue.Number}.");
+
             if (!IsSecretValid(secret)) {
                 return BadRequest();
             }
 
-            await pipelineRunnerService.ProcessIssue(viewModel.Issue.Number);
+            try {
+                await pipelineRunnerService.ProcessIssue(viewModel.Issue.Number);
+            } catch (Exception ex) {
+                Log.Error("Error while processing issue {issue}: {error}", viewModel.Issue.Number, ex.ToString());
+            }
 
             return Ok();
         }
