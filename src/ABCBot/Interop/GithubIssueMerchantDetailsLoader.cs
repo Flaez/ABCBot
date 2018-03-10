@@ -141,24 +141,21 @@ namespace ABCBot.Interop
                 }
 
                 if (collaboratorState) { // Only process comments from collaborators - we don't want other users altering data
-                    var document = CommonMarkConverter.Parse(comment.Body);
-                    foreach (var node in document.AsEnumerable()) {
-                        if (node.IsOpening && node.Block?.Tag == CommonMark.Syntax.BlockTag.Paragraph) {
-                            var maybeCommand = node.Block.InlineContent.LiteralContent;
 
-                            if (maybeCommand.StartsWith("/abc ")) {
-                                // A command was found! Allow triggering the bot. This will be reset again if this was not the last comment in the chain
-                                shouldStopExecuting = false;
+                    var lines = comment.Body.NormalizeLineEndings().Split('\n');
+                    foreach (var line in lines) {
+                        if (line.StartsWith("/abc ")) {
+                            // A command was found! Allow triggering the bot. This will be reset again if this was not the last comment in the chain
+                            shouldStopExecuting = false;
 
-                                var command = maybeCommand.Substring("/abc ".Length);
+                            var command = line.Substring("/abc ".Length);
 
-                                var firstSpacePosition = command.IndexOf(' ');
+                            var firstSpacePosition = command.IndexOf(' ');
 
-                                var key = command.Substring(0, firstSpacePosition);
-                                var value = command.Substring(firstSpacePosition + 1, (command.Length - firstSpacePosition - 1));
+                            var key = command.Substring(0, firstSpacePosition);
+                            var value = command.Substring(firstSpacePosition + 1, (command.Length - firstSpacePosition - 1));
 
-                                MapYmlKeyToDetailsWithSchema(merchantDetails, baseSchemaItem, key, value);
-                            }
+                            MapYmlKeyToDetailsWithSchema(merchantDetails, baseSchemaItem, key, value);
                         }
                     }
                 }
