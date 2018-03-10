@@ -12,9 +12,7 @@ namespace ABCBot
             var builder = new ConfigurationBuilder()
                               .SetBasePath(Directory.GetCurrentDirectory())
                               .AddJsonFile("appsettings.json", optional: true)
-#if DEBUG
                               .AddJsonFile("appsettings.development.json", optional: true)
-#endif
                               .AddEnvironmentVariables();
 
             return builder.Build();
