@@ -44,6 +44,10 @@ namespace ABCBot.Services
             Log.Information("Using {owner}/{name} as the bot repository", BotRepositoryOwner, BotRepositoryName);
         }
 
+        public Task<User> GetCurrentUser() {
+            return client.User.Current();
+        }
+
         public Task<Issue> GetIssue(RepositoryTarget repositoryTarget, int id) {
             return client.Issue.Get(GetRepositoryOwnerForTarget(repositoryTarget), GetRepositoryNameForTarget(repositoryTarget), id);
         }
