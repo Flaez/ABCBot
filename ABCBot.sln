@@ -9,7 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EF33E05F-28E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E554BD0E-7E6F-4110-9834-E93631767E44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABCBot.Tests", "test\ABCBot.Tests\ABCBot.Tests.csproj", "{ED627D9E-4B2D-4B63-A611-611E7D8E1F1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ABCBot.Tests", "test\ABCBot.Tests\ABCBot.Tests.csproj", "{ED627D9E-4B2D-4B63-A611-611E7D8E1F1B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3540B757-095A-4BFF-9EFF-4CEF295E8491}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
