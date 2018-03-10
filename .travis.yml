@@ -14,6 +14,6 @@ jobs:
       script:
         - dotnet restore ./ABCBot.sln
         - dotnet publish ./src/ABCBot/ABCBot.csproj -c Release
-        - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD
+        - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
         - docker build ./src/ABCBot/ -f ./src/ABCBot/Dockerfile -t flaez/abcbot
         - docker push flaez/abcbot
