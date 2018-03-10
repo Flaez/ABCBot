@@ -17,6 +17,7 @@ namespace ABCBot.Pipeline
             var githubService = services.GetService<IGitHubService>();
 
             return new TaskPipeline(context, announcer,
+                                    new TriggerCheckingTask(),
                                     new DataVerificationTask(twitterService),
                                     new DataMutationTask(networkService),
                                     new SetupBranchTask(),

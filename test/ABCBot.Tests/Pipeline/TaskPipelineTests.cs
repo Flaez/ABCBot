@@ -57,5 +57,26 @@ namespace ABCBot.Tests.Pipeline
             // Ensure that an announcement is made upon failure
             pipelineAnnouncer.Verify(x => x.Announce(It.IsAny<IPipelineContext>(), It.Is<string>(y => y == failingMessage)), Times.Once());
         }
+
+        [Fact]
+        public async Task ItShouldProcessASoftExitTask() {
+            var taskA = new Mock<IPipelineTask>();
+            taskA.Setup(x => x.Process(It.IsAny<IPipelineContext>())).ReturnsAsync(PipelineProcessingResult.SoftExit());
+
+            var pipelineContext = Mock.Of<IPipelineContext>();
+            var pipelineAnnouncer = new Mock<IPipelineAnnouncer>();
+
+            var pipeline = new TaskPipeline(pipelineContext, pipelineAnnouncer.Object, taskA.Object);
+
+            var result = await pipeline.Process();
+
+            Assert.False(result);
+
+            // Ensure the task has been run
+            taskA.Verify(x => x.Process(It.IsAny<IPipelineContext>()));
+
+            // Ensure that an announcement is made upon failure
+            pipelineAnnouncer.Verify(x => x.Announce(It.IsAny<IPipelineContext>(), It.IsAny<string>()), Times.Never());
+        }
     }
 }

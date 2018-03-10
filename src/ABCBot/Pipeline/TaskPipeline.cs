@@ -22,7 +22,9 @@ namespace ABCBot.Pipeline
                 var taskResult = await task.Process(Context);
 
                 if (!taskResult.IsSuccess) {
-                    await Announcer.Announce(Context, taskResult.Details);
+                    if (!taskResult.IsSoftExit) {
+                        await Announcer.Announce(Context, taskResult.Details);
+                    }
                     return false;
                 }
             }

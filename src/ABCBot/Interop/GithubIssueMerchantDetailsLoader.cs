@@ -128,8 +128,11 @@ namespace ABCBot.Interop
 
             var collaboratorStates = new Dictionary<string, bool>();
 
+            bool shouldStopExecuting = false;
+
             // Only apply comment commands from collaborators
             foreach (var comment in comments) {
+                shouldStopExecuting = true; // If there are any comments, it should only trigger on a command
 
                 var collaboratorState = false;
                 if (!collaboratorStates.TryGetValue(comment.User.Login, out collaboratorState)) {
@@ -144,6 +147,9 @@ namespace ABCBot.Interop
                             var maybeCommand = node.Block.InlineContent.LiteralContent;
 
                             if (maybeCommand.StartsWith("/abc ")) {
+                                // A command was found! Allow triggering the bot. This will be reset again if this was not the last comment in the chain
+                                shouldStopExecuting = false;
+
                                 var command = maybeCommand.Substring("/abc ".Length);
 
                                 var firstSpacePosition = command.IndexOf(' ');
@@ -157,6 +163,8 @@ namespace ABCBot.Interop
                     }
                 }
             }
+
+            merchantDetails.ShouldStopExecuting = shouldStopExecuting;
         }
     }
 }

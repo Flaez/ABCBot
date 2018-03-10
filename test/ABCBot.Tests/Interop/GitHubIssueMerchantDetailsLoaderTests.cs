@@ -215,6 +215,116 @@ Will this be included in the next release? Can't wait!";
 
             Assert.Equal(url, merchantDetails.Values["url"].Value);
             Assert.Equal(name, merchantDetails.Values["name"].Value);
+            Assert.True(merchantDetails.ShouldStopExecuting);
+        }
+
+        [Fact]
+        public async Task ItShouldAllowExecutingIfLastCommentWasCommand() {
+            var url = "https://google.com";
+            var name = "Google";
+
+            var schema = new MappingSchemaItem()
+            {
+                Mapping =
+                {
+                    { "websites", new SequenceSchemaItem()
+                        {
+                            Items =
+                            {
+                                new MappingSchemaItem()
+                                {
+                                    Name = "Website",
+                                    Mapping =
+                                    {
+                                        { "name", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } },
+                                        { "url", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var collaboratorUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
+                                    0, null, "", 0, 0, "", "collaborator", null, 0, null, 0, 0, 0, "",
+                                    new RepositoryPermissions(false, true, false), false, "", null);
+
+            var externalUser = new User("", "", "", 0, "", DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, "", 0,
+                                    0, null, "", 0, 0, "", "external", null, 0, null, 0, 0, 0, "",
+                                    new RepositoryPermissions(false, false, false), false, "", null);
+
+            var externalUserCommentBody = @"Wow, this looks great!
+
+Will this be included in the next release? Can't wait!";
+
+            var collaboratorUserCommentBody = $"/abc url {url}";
+            var secondCollaboratorUserCommentBody = $"/abc name {name}";
+
+            var externalUserComment = new IssueComment(0, "", "", externalUserCommentBody, DateTimeOffset.MinValue, null, externalUser);
+            var collaboratorUserComment = new IssueComment(0, "", "", collaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
+            var secondCollaboratorUserComment = new IssueComment(0, "", "", secondCollaboratorUserCommentBody, DateTimeOffset.MinValue, null, collaboratorUser);
+
+            var issueComments = new List<IssueComment>()
+            {
+                externalUserComment,
+                collaboratorUserComment,
+                secondCollaboratorUserComment,
+            };
+
+            var merchantDetails = new MerchantDetails();
+
+            var githubService = new Mock<IGitHubService>();
+            githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issueComments);
+            githubService.Setup(x => x.IsCollaborator(It.IsAny<RepositoryTarget>(), It.Is<string>(y => y == "admin" || y == "collaborator"))).ReturnsAsync(true);
+            githubService.Setup(x => x.IsCollaborator(It.IsAny<RepositoryTarget>(), It.Is<string>(y => y == "external"))).ReturnsAsync(false);
+
+            var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
+
+            await detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, schema, merchantDetails);
+
+            Assert.Equal(url, merchantDetails.Values["url"].Value);
+            Assert.Equal(name, merchantDetails.Values["name"].Value);
+            Assert.False(merchantDetails.ShouldStopExecuting);
+        }
+
+        [Fact]
+        public async Task ItShouldAllowExecutingIfNoComments() {
+            var schema = new MappingSchemaItem()
+            {
+                Mapping =
+                {
+                    { "websites", new SequenceSchemaItem()
+                        {
+                            Items =
+                            {
+                                new MappingSchemaItem()
+                                {
+                                    Name = "Website",
+                                    Mapping =
+                                    {
+                                        { "name", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } },
+                                        { "url", new KeyValueSchemaItem() { Type = "str", Required = true, Unique = true } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var issueComments = new List<IssueComment>();
+
+            var merchantDetails = new MerchantDetails();
+
+            var githubService = new Mock<IGitHubService>();
+            githubService.Setup(x => x.GetIssueComments(It.IsAny<RepositoryTarget>(), It.IsAny<int>())).ReturnsAsync(issueComments);
+
+            var detailsLoader = new GithubIssueMerchantDetailsLoader(githubService.Object);
+
+            await detailsLoader.ApplyIssueCommentCommandsToMerchantDetails(issueComments, schema, merchantDetails);
+
+            Assert.False(merchantDetails.ShouldStopExecuting);
         }
     }
 }

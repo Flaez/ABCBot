@@ -10,6 +10,8 @@ namespace ABCBot.Models
 
         public string PlacedImageName { get; set; }
 
+        public bool ShouldStopExecuting { get; set; }
+
         public MerchantDetails() {
             this.Values = new Dictionary<string, MerchantDetailsItem>();
         }
