@@ -88,5 +88,56 @@ namespace ABCBot.Tests.Pipeline.Tasks
 
             Assert.Equal(httpsUrlVariant, merchantDetails.Values["url"].Value);
         }
+
+        [Theory]
+        [InlineData("https://facebook.com/testing")]
+        [InlineData("https://www.facebook.com/testing")]
+        [InlineData("http://facebook.com/testing")]
+        [InlineData("http://www.facebook.com/testing")]
+        [InlineData("www.facebook.com/testing")]
+        [InlineData("facebook.com/testing")]
+        [InlineData("facebook.com/testing/")]
+        [InlineData("testing")]
+        public void ExtractFacebookHandleFromUrl(string facebookUrl) {
+            var merchantDetails = new MerchantDetails()
+            {
+                Values =
+                {
+                    { "facebook", new MerchantDetailsItem() { Value = facebookUrl } }
+                }
+            };
+
+            var task = new DataMutationTask(Mock.Of<INetworkService>());
+
+            task.MutateFacebookLink(merchantDetails);
+
+            Assert.Equal("testing", merchantDetails.Values["facebook"].Value);
+        }
+
+        [Theory]
+        [InlineData("https://twitter.com/testing")]
+        [InlineData("https://www.twitter.com/testing")]
+        [InlineData("http://twitter.com/testing")]
+        [InlineData("http://www.twitter.com/testing")]
+        [InlineData("www.twitter.com/testing")]
+        [InlineData("twitter.com/testing")]
+        [InlineData("twitter.com/testing/")]
+        [InlineData("@testing")]
+        [InlineData("testing")]
+        public void ExtractTwitterHandleFromUrl(string twitterUrl) {
+            var merchantDetails = new MerchantDetails()
+            {
+                Values =
+                {
+                    { "twitter", new MerchantDetailsItem() { Value = twitterUrl } }
+                }
+            };
+
+            var task = new DataMutationTask(Mock.Of<INetworkService>());
+
+            task.MutateTwitterLink(merchantDetails);
+
+            Assert.Equal("testing", merchantDetails.Values["twitter"].Value);
+        }
     }
 }
