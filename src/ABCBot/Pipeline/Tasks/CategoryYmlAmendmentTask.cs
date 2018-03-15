@@ -49,7 +49,7 @@ namespace ABCBot.Pipeline.Tasks
             }
             websitesCollection.Add(merchantEntry);
 
-            document["websites"] = websitesCollection.OrderBy(x => x["name"]).ToList();
+            document["websites"] = websitesCollection.OrderBy(x => (string)x["name"], StringComparer.Ordinal).ToList();
 
             var serializer = new SerializerBuilder()
                                 .Build();
