@@ -70,8 +70,9 @@ namespace ABCBot.Interop
             var key = schemaXPath;
 
             // If the key isn't in the schema, this isn't a valid field and can be ignored
+            // The exception to this is the 'category' key, which isn't included in the schema document
             // TODO: Announce invalid fields
-            if (baseSchemaItem.Mapping.TryGetValue(key, out var schemaItem)) {
+            if (baseSchemaItem.Mapping.TryGetValue(key, out var schemaItem) || key == "category") {
                 switch (schemaItem) {
                     case KeyValueSchemaItem kvItem: {
                             var merchantDetailsItem = merchantDetails.UpsertValue(key);
