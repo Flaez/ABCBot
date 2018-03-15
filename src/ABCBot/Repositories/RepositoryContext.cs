@@ -30,7 +30,11 @@ namespace ABCBot.Repositories
 
         public IEnumerable<string> EnumerateCategories() {
             foreach (var file in Directory.EnumerateFiles(Path.Combine(RepositoryDirectory, DataDirectory), "*.yml", SearchOption.TopDirectoryOnly)) {
-                yield return Path.GetFileNameWithoutExtension(file);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+
+                if (!fileNameWithoutExtension.EndsWith("sections")) {
+                    yield return fileNameWithoutExtension;
+                }
             }
         }
 
