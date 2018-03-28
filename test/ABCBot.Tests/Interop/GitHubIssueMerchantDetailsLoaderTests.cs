@@ -142,6 +142,7 @@ If everything looks okay, Add it to the site:
         public async Task ItShouldApplyCommentCommandsToMerchantDetails() {
             var url = "https://google.com";
             var name = "Google";
+            var category = "testing";
 
             var schema = new MappingSchemaItem()
             {
@@ -183,7 +184,7 @@ If everything looks okay, Add it to the site:
 Will this be included in the next release? Can't wait!";
             var secondExternalUserCommentBody = @"/abc url https://evilsite.org";
 
-            var collaboratorUserCommentBody = $"/abc url {url}";
+            var collaboratorUserCommentBody = $"/abc url {url}\n/abc category {category}";
             var secondCollaboratorUserCommentBody = $"/abc name {name}";
             var adminUserCommentBody = @"LGTM";
 
@@ -215,6 +216,7 @@ Will this be included in the next release? Can't wait!";
 
             Assert.Equal(url, merchantDetails.Values["url"].Value);
             Assert.Equal(name, merchantDetails.Values["name"].Value);
+            Assert.Equal(category, merchantDetails.Values["category"].Value);
             Assert.True(merchantDetails.ShouldStopExecuting);
         }
 
