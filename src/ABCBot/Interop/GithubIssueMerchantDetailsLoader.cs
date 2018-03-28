@@ -87,7 +87,6 @@ namespace ABCBot.Interop
             if (key == "category") {
                 var merchantDetailsItem = merchantDetails.UpsertValue(key);
 
-                merchantDetailsItem.SchemaItem = new KeyValueSchemaItem() { Type = "string", Required = true };
                 merchantDetailsItem.Value = value.Trim('\'').Trim('\"');
             }
         }
